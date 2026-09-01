@@ -86,9 +86,17 @@ class CSVData:
         pass
 
     def interpolate_gaps(self):
+        self.df["Timestamp"] = self.timestamp_col
+        self.df["Timestamp"] = pd.to_datetime(self.df["Timestamp"])
+        self.df.set_index("Timestamp", inplace=True)
+
+        unique_regimes = self.df["operating_"]
+                
         for col in self.df.columns:
+            if col == "Timestamp":
+                continue
             if pd.api.types.is_numeric_dtype(self.df[col]):
-                self.df[col] = self.df[col].interpolate()
+                self.df[col] = self.df[col].interpolate(method="time", limit=)
             else:
                 print(f"Skipped column {col} because it has text.")
 
@@ -116,7 +124,7 @@ class CSVData:
         self.df.to_csv(f"csvs/clean/{self.csv_name}", index=False)
 
     def column_ordering_config(self):
-        self.df["Timestamp"] = self.timestamp_col
+        # self.df["Timestamp"] = self.timestamp_col
         column_indexes = {}
         column_names = self.df.columns
         state_columns = []

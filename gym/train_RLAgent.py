@@ -22,10 +22,13 @@ class OnnxablePolicy(torch.nn.Module):
 MODELS_FOLDER = "models"
 
 RL_MODEL_NAME = "td3"
-RL_MODEL_FOLDER = f"{MODELS_FOLDER}/RL"
+RL_MODEL_FOLDER = f"{MODELS_FOLDER}/RL_models"
+
+RAW_MODEL_NAME = f"raw_{RL_MODEL_NAME}"
+RAW_RL_MODEL_FOLDER = f"{RL_MODEL_FOLDER}/raw_RL_models"
 
 ONNX_RL_MODEL_NAME = f"ONNX_{RL_MODEL_NAME}"
-ONNX_RL_MODEL_FOLDER = f"{MODELS_FOLDER}/RL/ONNX"
+ONNX_RL_MODEL_FOLDER = f"{MODELS_FOLDER}/RLONNX"
 
 ONNX_MODEL_PATH = "C:/Users/reyde/Desktop/Coding_Project/Portfolio/model_process/models/VAE_industrial"
 

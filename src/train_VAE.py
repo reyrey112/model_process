@@ -12,6 +12,8 @@ from pathlib import Path
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+MODEL_DIRECTORY = Path("./models/pytorch_dynamic_models")
+
 
 class VAE(nn.Module):
     def __init__(
@@ -134,12 +136,11 @@ def model_export_to_onnx(model):
     model_cpu = model.to("cpu")
     model.eval()
     dummy_input = torch.randn(1, 1, model.features)
-    save_directory = Path("./models")
-    save_directory.mkdir(parents=True, exist_ok=True)
+    MODEL_DIRECTORY.mkdir(parents=True, exist_ok=True)
     torch.onnx.export(
         model_cpu,
         dummy_input,
-        f"{str(save_directory)}/VAE_industrial",
+        f"{str(MODEL_DIRECTORY)}/VAE_industrial",
         export_params=True,
         input_names=[f"input_name"],
         output_names=["output_name", "output_mu", "output_logvar"],
