@@ -1,0 +1,55 @@
+column_config:
+  column_indexes:
+    action_feed_flow_rate: 0
+    action_coolant_flow_rate: 1
+    action_agitator_speed_rpm: 2
+    action_temp_setpoint: 3
+    action_pressure_setpoint: 4
+    state_ambient_temp_effect: 5
+    state_reactor_temp: 6
+    state_reactor_pressure: 7
+    state_reaction_rate: 8
+    state_conversion_rate: 9
+    state_selectivity: 10
+    state_yield_pct: 11
+    state_vibration_rms: 12
+    state_motor_current: 13
+    state_power_consumption_kw: 14
+    state_operating_regime_A: 15
+    state_operating_regime_B: 16
+    state_reactor_id_A_R1: 17
+    state_reactor_id_A_R2: 18
+    state_reactor_id_A_R3: 19
+    state_reactor_id_B_R1: 20
+    state_reactor_id_B_R2: 21
+    state_reactor_id_B_R3: 22
+    quality: 23
+    Timestamp: 24
+  state_columns:
+  - state_ambient_temp_effect
+  - state_reactor_temp
+  - state_reactor_pressure
+  - state_reaction_rate
+  - state_conversion_rate
+  - state_selectivity
+  - state_yield_pct
+  - state_vibration_rms
+  - state_motor_current
+  - state_power_consumption_kw
+  - state_operating_regime_A
+  - state_operating_regime_B
+  - state_reactor_id_A_R1
+  - state_reactor_id_A_R2
+  - state_reactor_id_A_R3
+  - state_reactor_id_B_R1
+  - state_reactor_id_B_R2
+  - state_reactor_id_B_R3
+  action_columns:
+  - action_feed_flow_rate
+  - action_coolant_flow_rate
+  - action_agitator_speed_rpm
+  - action_temp_setpoint
+  - action_pressure_setpoint
+  other_columns:
+  - quality
+  - Timestamp

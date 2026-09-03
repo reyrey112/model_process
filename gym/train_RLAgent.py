@@ -5,6 +5,7 @@ import onnxruntime as ort
 import pandas as pd
 import torch
 from pathlib import Path
+import yaml
 
 
 class OnnxablePolicy(torch.nn.Module):
@@ -66,10 +67,11 @@ dummy_input = torch.randn(1, obs_shape)
 dummy_input2 = torch.randn(1, obs_shape)
 save_directory = Path(f"./{ONNX_RL_MODEL_FOLDER}")
 save_directory.mkdir(parents=True, exist_ok=True)
+onnx_RL_model_path = f"{save_directory}/{ONNX_RL_MODEL_NAME}.onnx"
 torch.onnx.export(
     onnxable_model,
     (dummy_input, dummy_input2),
-    f"{save_directory}/{ONNX_RL_MODEL_NAME}.onnx",
+    onnx_RL_model_path,
     opset_version=18,
     input_names=["agent", "target"],
     output_names=["action"],
@@ -79,6 +81,11 @@ torch.onnx.export(
         "action": {0: "batch_size"},
     },
 )
+
+with open("config.yaml", "w") as file:
+    yaml.safe_dump({"onnx_RL_model_path": onnx_RL_model_path}, file, default_flow_style=False, sort_keys=False)
+
+
 while True:
     action, _ = model.predict(state)
     observation, reward, done, info = vec_env.step(action)

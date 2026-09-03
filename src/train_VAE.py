@@ -10,6 +10,16 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 
+import yaml, os, sys
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+root_dir = os.path.abspath(os.path.join(current_dir, ".."))
+
+if root_dir not in sys.path:
+    sys.path.append(root_dir)
+
+from util.yaml_check import yaml_add_or_update
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 MODEL_DIRECTORY = Path("./models/pytorch_dynamic_models")
@@ -137,10 +147,11 @@ def model_export_to_onnx(model):
     model.eval()
     dummy_input = torch.randn(1, 1, model.features)
     MODEL_DIRECTORY.mkdir(parents=True, exist_ok=True)
+    onnx_dynamic_model_path = f"{str(MODEL_DIRECTORY)}/VAE_industrial"
     torch.onnx.export(
         model_cpu,
         dummy_input,
-        f"{str(MODEL_DIRECTORY)}/VAE_industrial",
+        onnx_dynamic_model_path,
         export_params=True,
         input_names=[f"input_name"],
         output_names=["output_name", "output_mu", "output_logvar"],
@@ -151,6 +162,9 @@ def model_export_to_onnx(model):
             "output_logvar": {0: "batch_size"},
         },
     )
+
+    yaml_add_or_update(key="onnx_dynamic_model_path", value=onnx_dynamic_model_path)
+
     print("Model Saved")
 
 

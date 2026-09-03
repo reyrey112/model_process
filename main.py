@@ -3,19 +3,13 @@ from src.train_VAE import VAE, window_CV
 import pandas as pd
 
 import json
+import yaml
 from pathlib import Path
 
 CSV_PATH = "csvs/raw/chemical_process_timeseries.csv"
 RAW_CSV_NAME = "chemical_process_timeseries.csv"
 CLEAN_CSV_PATH = f"csvs/clean/{RAW_CSV_NAME}"
-COLUMN_CONFIG_PATH = "column_config.json"
 
-if Path("column_config.json").is_file():
-    with open("column_config.json", "r") as file:
-        column_configs: dict = json.load(file)
-    state_columns: list = column_configs["state_columns"]
-    action_columns: list = column_configs["action_columns"]
-    column_indexes: dict = column_configs["column_indexes"]
 
 FOLDS = 5
 BATCH_SIZE = 40
@@ -28,8 +22,7 @@ EPOCHS = 5
 SEQUENCES = 50
 STRIDE = 25
 QUALITY_WEIGHT = 0.25
-ENCODER_INPUT_FEATURES = len(column_indexes) - 1
-DECODER_OUTPUT_STATE_FEATURES = len(state_columns) 
+
 
 
 def main():
@@ -38,6 +31,15 @@ def main():
     # csv_data.run_pipeline()
 
     df = pd.read_csv(CLEAN_CSV_PATH)
+
+    with open("config.yaml", "r") as file:
+        config = yaml.safe_load(file)
+    state_columns: list = config["column_config"]["state_columns"]
+    action_columns: list = config["column_config"]["action_columns"]
+    column_indexes: dict = config["column_config"]["column_indexes"]
+
+    ENCODER_INPUT_FEATURES = len(column_indexes) - 1
+    DECODER_OUTPUT_STATE_FEATURES = len(state_columns) 
 
     model = VAE(
         input_features=ENCODER_INPUT_FEATURES,

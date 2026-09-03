@@ -1,7 +1,16 @@
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder
 from datetime import datetime
-import json
+import yaml
+import os, sys
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+root_dir = os.path.abspath(os.path.join(current_dir, ".."))
+
+if root_dir not in sys.path:
+    sys.path.append(root_dir)
+
+from util.yaml_check import yaml_add_or_update
 
 
 def z_score(col: pd.Series):
@@ -85,20 +94,20 @@ class CSVData:
     def normalize_sampling_frequency(self):
         pass
 
-    def interpolate_gaps(self):
-        self.df["Timestamp"] = self.timestamp_col
-        self.df["Timestamp"] = pd.to_datetime(self.df["Timestamp"])
-        self.df.set_index("Timestamp", inplace=True)
+    # def interpolate_gaps(self):
+    #     self.df["Timestamp"] = self.timestamp_col
+    #     self.df["Timestamp"] = pd.to_datetime(self.df["Timestamp"])
+    #     self.df.set_index("Timestamp", inplace=True)
 
-        unique_regimes = self.df["operating_"]
-                
-        for col in self.df.columns:
-            if col == "Timestamp":
-                continue
-            if pd.api.types.is_numeric_dtype(self.df[col]):
-                self.df[col] = self.df[col].interpolate(method="time", limit=)
-            else:
-                print(f"Skipped column {col} because it has text.")
+    #     unique_regimes = self.df["operating_"]
+
+    #     for col in self.df.columns:
+    #         if col == "Timestamp":
+    #             continue
+    #         if pd.api.types.is_numeric_dtype(self.df[col]):
+    #             self.df[col] = self.df[col].interpolate(method="time", limit=10)
+    #         else:
+    #             print(f"Skipped column {col} because it has text.")
 
     def z_score_columns(self):
         self.df["state_temp_diff"] = abs(
@@ -124,7 +133,7 @@ class CSVData:
         self.df.to_csv(f"csvs/clean/{self.csv_name}", index=False)
 
     def column_ordering_config(self):
-        # self.df["Timestamp"] = self.timestamp_col
+        self.df["Timestamp"] = self.timestamp_col
         column_indexes = {}
         column_names = self.df.columns
         state_columns = []
@@ -173,15 +182,17 @@ class CSVData:
             "other_columns": other_columns,
         }
 
-        with open("column_config.json", "w") as file:
-            json.dump(column_config, file)
+        yaml_add_or_update(
+            yaml_file_path="config.yaml", key="column_config", value=column_config
+        )
+
 
     def run_pipeline(self):
         self.timestamp_column()
         self.remove_columns()
         self.encode_categorical_columns()
         self.active_state_columns()
-        self.interpolate_gaps()
+        # self.interpolate_gaps()
         self.z_score_columns()
         self.column_ordering_config()
         self.save_clean()
