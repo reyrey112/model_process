@@ -53,3 +53,5 @@ column_config:
   other_columns:
   - quality
   - Timestamp
+onnx_dynamic_model_path: models\pytorch_dynamic_models/VAE_industrial
+onnx_RL_model_path: models\RLONNX/ONNX_td3.onnx

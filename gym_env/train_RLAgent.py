@@ -5,8 +5,15 @@ import onnxruntime as ort
 import pandas as pd
 import torch
 from pathlib import Path
-import yaml
+import yaml, os ,sys
 
+current_dir = os.path.dirname(os.path.abspath(__file__))
+root_dir = os.path.abspath(os.path.join(current_dir, ".."))
+
+if root_dir not in sys.path:
+    sys.path.append(root_dir)
+
+from util.yaml_check import yaml_add_or_update
 
 class OnnxablePolicy(torch.nn.Module):
     def __init__(self, actor):
@@ -29,15 +36,18 @@ RAW_MODEL_NAME = f"raw_{RL_MODEL_NAME}"
 RAW_RL_MODEL_FOLDER = f"{RL_MODEL_FOLDER}/raw_RL_models"
 
 ONNX_RL_MODEL_NAME = f"ONNX_{RL_MODEL_NAME}"
-ONNX_RL_MODEL_FOLDER = f"{MODELS_FOLDER}/RLONNX"
+ONNX_RL_MODEL_FOLDER = f"{MODELS_FOLDER}/RL_ONNX"
 
-ONNX_MODEL_PATH = "C:/Users/reyde/Desktop/Coding_Project/Portfolio/model_process/models/VAE_industrial"
+with open("config.yaml", "r") as file:
+    config = yaml.safe_load(file)
+
+ONNX_DYNAMIC_MODEL_PATH = config["onnx_dynamic_model_path"]
 
 RAW_CSV_NAME = "chemical_process_timeseries.csv"
 CLEAN_CSV_PATH = f"csvs/clean/{RAW_CSV_NAME}"
 
 session = ort.InferenceSession(
-    ONNX_MODEL_PATH, providers=["CUDAExecutionProvider", "CPUExecutionProvider"]
+    ONNX_DYNAMIC_MODEL_PATH, providers=["CUDAExecutionProvider", "CPUExecutionProvider"]
 )
 
 start_data = pd.read_csv(CLEAN_CSV_PATH)
@@ -82,9 +92,8 @@ torch.onnx.export(
     },
 )
 
-with open("config.yaml", "w") as file:
-    yaml.safe_dump({"onnx_RL_model_path": onnx_RL_model_path}, file, default_flow_style=False, sort_keys=False)
-
+yaml_add_or_update(key="onnx_RL_model_path", value=onnx_RL_model_path)
+print("model saved")
 
 while True:
     action, _ = model.predict(state)
