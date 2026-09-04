@@ -22,7 +22,7 @@ from util.yaml_check import yaml_add_or_update
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-MODEL_DIRECTORY = Path("./models/pytorch_dynamic_models")
+MODEL_DIRECTORY = Path("./models/pytorch_dynamic_models").as_posix()
 
 
 class VAE(nn.Module):
