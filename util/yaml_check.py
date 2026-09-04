@@ -38,3 +38,9 @@ def yaml_add_or_update(key: str, value, yaml_file_path="config.yaml"):
         yaml_add_key(yaml_file_path, key, value)
     else:
         yaml_add_key(yaml_file_path, key, value)
+
+def yaml_key_check(config, key):
+    if key in config:
+        return config[key]
+    else:
+        return None
