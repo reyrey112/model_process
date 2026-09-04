@@ -20,16 +20,24 @@ root_dir = os.path.abspath(os.path.join(current_dir, ".."))
 if root_dir not in sys.path:
     sys.path.append(root_dir)
 
+from util.yaml_check import yaml_key_check
+from util.state_input import random_state_row
+
 with open("config.yaml", "r") as file:
     config = yaml.safe_load(file)
 
-HOSTNAME: str = config["hostname"]
-REDIS_PORT: int = config["redis_port"]
+RAW_CSV_NAME = "chemical_process_timeseries.csv"
+CLEAN_CSV_PATH = f"csvs/clean/{RAW_CSV_NAME}"
+
+HOSTNAME: str = yaml_key_check(config, "hostname") or "localhost"
+REDIS_PORT: int = yaml_key_check(config, "redis_port") or 6379
 ONNX_RL_MODEL_PATH: str = config["onnx_RL_model_path"]
-ACTION_STREAM_NAME: str = config["action_stream_name"]
-STATE_STREAM_NAME: str = config["state_stream_name"]
-STATE_COLUMNS: list = config["state_column"]
-ACTION_COLUMN: list = config["action_column"]
+ACTION_STREAM_NAME: str = yaml_key_check(config, "action_stream_name") or "action"
+STATE_STREAM_NAME: str = yaml_key_check(config, "state_stream_name") or "state"
+STATE_COLUMNS: list = config["column_config"]["state_columns"]
+ACTION_COLUMN: list = config["column_config"]["action_columns"]
+COLUMN_INDEXES: dict = config["column_config"]["column_indexes"]
+
 
 # Client side caching using fast API for same conneciton? might not even be as fast
 # as direct connect
@@ -41,7 +49,7 @@ ACTION_COLUMN: list = config["action_column"]
 #     decode_responses=True
 # )
 
-r = redis.Redis(host=HOSTNAME, port=REDIS_PORT, decode_responses=True)
+r = redis.Redis(host=HOSTNAME, port=REDIS_PORT, decode_responses=True, password="reyden")
 # r = redis.Redis(
 #     host="my-redis.cloud.redislabs.com", port=6379,
 #     username="default", # use your Redis user. More info https://redis.io/docs/latest/operate/oss_and_stack/management/security/acl/
@@ -51,7 +59,7 @@ r = redis.Redis(host=HOSTNAME, port=REDIS_PORT, decode_responses=True)
 #     ssl_keyfile="./redis_user_private.key",
 #     ssl_ca_certs="./redis_ca.pem",
 # )
-session = ort.InferenceSession(ONNX_RL_MODEL_PATH)
+session = ort.InferenceSession(f"{root_dir}/{ONNX_RL_MODEL_PATH}")
 
 # Check input/output names and shapes (useful for sanity-checking)
 for inp in session.get_inputs():
@@ -71,7 +79,7 @@ if latest_item:
     msg_id, state_t = latest_item[0]
 else:
     # initiate state of T function from excel sheet
-    state_t: list
+    state_t = random_state_row(state_columns=STATE_COLUMNS, csv_path=CLEAN_CSV_PATH)
 
     # time of first timestamp (make it do every 1s for now)
     time = datetime.now()
