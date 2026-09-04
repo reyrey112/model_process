@@ -121,7 +121,7 @@ class ProcessSimEnv(gym.Env):
         Returns:
             dict: Observation with agent and target positions
         """
-        return {"agent": self._agent_location, "target": self._target_location}
+        return {"agent": self._agent_location, "target": self._quality_score}
 
     def reset(self, seed=None, options: Optional[dict] = None):
         super().reset(seed=seed)
