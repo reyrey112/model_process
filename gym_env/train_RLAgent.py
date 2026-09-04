@@ -16,15 +16,19 @@ if root_dir not in sys.path:
 from util.yaml_check import yaml_add_or_update
 
 class OnnxablePolicy(torch.nn.Module):
-    def __init__(self, actor):
+    def __init__(self, actor, action_low, action_high):
         super().__init__()
-        # actor.mu is the deterministic policy network (outputs actions directly)
         self.actor = actor
+        # register as buffers so they export as constants and move with .to(device) correctly
+        self.register_buffer("action_low", torch.as_tensor(action_low, dtype=torch.float32))
+        self.register_buffer("action_high", torch.as_tensor(action_high, dtype=torch.float32))
 
     def forward(self, agent, target):
-        # Reconstruct the dict SB3's preprocess_obs expects
         obs = {"agent": agent, "target": target}
-        return self.actor(obs)
+        raw_action = self.actor(obs)  # in [-1, 1]
+        # rescale from [-1, 1] to [low, high]
+        scaled_action = self.action_low + 0.5 * (raw_action + 1.0) * (self.action_high - self.action_low)
+        return scaled_action
 
 
 MODELS_FOLDER = "models"
@@ -70,14 +74,18 @@ state = vec_env.reset()
 
 print("enc reset")
 
-onnxable_model = OnnxablePolicy(new_model.policy.actor).to(device="cpu")
+onnxable_model = OnnxablePolicy(
+    new_model.policy.actor,
+    action_low=env.action_space.low,
+    action_high=env.action_space.high,
+).to(device="cpu")
 onnxable_model.actor.set_training_mode(False)
 obs_shape = onnxable_model.actor.observation_space["target"].shape[0]
 dummy_input = torch.randn(1, obs_shape)
 dummy_input2 = torch.randn(1, obs_shape)
 save_directory = Path(f"./{ONNX_RL_MODEL_FOLDER}")
 save_directory.mkdir(parents=True, exist_ok=True)
-onnx_RL_model_path = f"{save_directory}/{ONNX_RL_MODEL_NAME}.onnx"
+onnx_RL_model_path = f"{save_directory.as_posix}/{ONNX_RL_MODEL_NAME}.onnx"
 torch.onnx.export(
     onnxable_model,
     (dummy_input, dummy_input2),
