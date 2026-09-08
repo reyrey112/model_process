@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
-
+import time
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.preprocessing import StandardScaler
 
@@ -21,8 +21,8 @@ if root_dir not in sys.path:
 from util.yaml_check import yaml_add_or_update
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-MODEL_DIRECTORY = Path("./models/pytorch_dynamic_models").as_posix()
+MODEL_DIRECTORY = Path("./models/pytorch_dynamic_models")
+print(MODEL_DIRECTORY)
 
 
 class VAE(nn.Module):
@@ -80,7 +80,7 @@ class VAE(nn.Module):
         return out
 
     def forward(self, x):
-        sequence_length = x.size(1)
+        sequence_length = x.shape[1]
         mu, logvar = self.encode(x)
         z = self.reparameterize(mu, logvar, sequence_length)
 
@@ -104,9 +104,9 @@ def create_state_datasets_t(x, state_indexes: list[int]):
     index_tensor = torch.tensor(state_indexes)
     state_t = x[:, 0 : x.shape[0] - 1, index_tensor]
     state_t_1 = x[:, 1 : x.shape[0], index_tensor]
-    state_action_t = x[:, 0 : x.shape[0] - 1, :]
+    state_action_target_t = x[:, 0 : x.shape[0] - 1, :]
 
-    return state_t, state_t_1, state_action_t
+    return state_t, state_t_1, state_action_target_t
 
 
 def loss_function(
@@ -147,7 +147,8 @@ def model_export_to_onnx(model):
     model.eval()
     dummy_input = torch.randn(1, 1, model.features)
     MODEL_DIRECTORY.mkdir(parents=True, exist_ok=True)
-    onnx_dynamic_model_path = f"{str(MODEL_DIRECTORY)}/VAE_industrial"
+    MODEL_DIRECTORY.as_posix()
+    onnx_dynamic_model_path = f"{MODEL_DIRECTORY}/VAE_industrial"
     torch.onnx.export(
         model_cpu,
         dummy_input,
@@ -180,6 +181,8 @@ def window_CV(
     batch_size: int,
     column_indexes: dict[str, int],
     state_columns: list[str],
+    action_columns: list[str],
+    target_columns: list[str],
 ):
 
     tscv = TimeSeriesSplit(n_splits=folds)
@@ -208,6 +211,9 @@ def window_CV(
 
         # separate state(t) from state(t+1)
         state_indexes = [column_indexes[x] for x in state_columns]
+
+        # need to make sure target(t) and target(t+1) is the same
+        target_indexes = [column_indexes[x] for x in target_columns]
 
         x_train_windows = make_windows(
             x_train_scaled, window_size=sequences, stride=stride
@@ -239,11 +245,11 @@ def window_CV(
             train_loss = 0
             for data, _ in train_loader:
                 data = data.to(device)
-                state_t, state_t_1, state_action_t = create_state_datasets_t(
+                state_t, state_t_1, state_action_target_t = create_state_datasets_t(
                     data, state_indexes
                 )
                 optimizer.zero_grad()
-                predicted_delta, mu, logvar = model(state_action_t)
+                predicted_delta, mu, logvar = model(state_action_target_t)
                 loss = loss_function(
                     predicted_delta=predicted_delta,
                     state_t=state_t,
@@ -253,24 +259,26 @@ def window_CV(
                     quality=quality_train,
                     quality_weight=quality_weight,
                     features=model.features,
-                    sequences=state_action_t.shape[1],
+                    sequences=state_action_target_t.shape[1],
                 )
                 loss.backward()
-                train_loss += loss.item()
+                loss_item = loss.item()
+                scaled_loss_item = loss_item / (
+                    len(data) * state_action_target_t.shape[1] * model.features
+                )
+                train_loss += scaled_loss_item
                 optimizer.step()
-            print(
-                f"epoch {epoch+1}, TRAIN LOSS: {train_loss / (len(train_loader.dataset) * sequences * model.features)}"
-            )
+            print(f"Fold {fold + 1} - Epoch {epoch+1}, TRAIN LOSS: {train_loss}")
 
             model.eval()
             val_loss = 0
             with torch.no_grad():
                 for data, _ in val_loader:
                     data = data.to(device)
-                    state_val_t, state_val_t_1, state_action_val_t = (
+                    state_val_t, state_val_t_1, state_action_target_val_t = (
                         create_state_datasets_t(data, state_indexes)
                     )
-                    predicted_delta, mu, logvar = model(state_action_val_t)
+                    predicted_delta, mu, logvar = model(state_action_target_val_t)
                     loss = loss_function(
                         predicted_delta=predicted_delta,
                         state_t=state_val_t,
@@ -280,12 +288,13 @@ def window_CV(
                         quality=quality_train,
                         quality_weight=quality_weight,
                         features=model.features,
-                        sequences=state_action_t.shape[1],
+                        sequences=state_action_target_val_t.shape[1],
                     )
-                    val_loss += loss.item()
-
-            print(
-                f"epoch {epoch+1}, VAL LOSS: {val_loss / (len(val_loader.dataset) * sequences * model.features)}"
-            )
+                    loss_item = loss.item()
+                    scaled_loss_item = loss_item / (
+                        len(data) * state_action_target_val_t.shape[1] * model.features
+                    )
+                    val_loss += scaled_loss_item
+            print(f"Fold {fold + 1} - Epoch {epoch+1}, VAL LOSS: {val_loss}")
 
     model_export_to_onnx(model)

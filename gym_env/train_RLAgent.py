@@ -72,7 +72,7 @@ print("loaded model, env resetting")
 
 state = vec_env.reset()
 
-print("enc reset")
+print("enc reset, creating OnnxablePolicy")
 
 onnxable_model = OnnxablePolicy(
     new_model.policy.actor,
@@ -80,15 +80,17 @@ onnxable_model = OnnxablePolicy(
     action_high=env.action_space.high,
 ).to(device="cpu")
 onnxable_model.actor.set_training_mode(False)
-obs_shape = onnxable_model.actor.observation_space["target"].shape[0]
-dummy_input = torch.randn(1, obs_shape)
-dummy_input2 = torch.randn(1, obs_shape)
+agent_shape = onnxable_model.actor.observation_space["agent"].shape[0]
+quality_shape = onnxable_model.actor.observation_space["target"].shape[0]
+agent_input = torch.randn(1, agent_shape)
+quality_input = torch.randn(1, quality_shape)
 save_directory = Path(f"./{ONNX_RL_MODEL_FOLDER}")
 save_directory.mkdir(parents=True, exist_ok=True)
-onnx_RL_model_path = f"{save_directory.as_posix}/{ONNX_RL_MODEL_NAME}.onnx"
+onnx_RL_model_path = f"{save_directory.as_posix()}/{ONNX_RL_MODEL_NAME}.onnx"
+print("exporting model to ONNX")
 torch.onnx.export(
     onnxable_model,
-    (dummy_input, dummy_input2),
+    (agent_input, quality_input),
     onnx_RL_model_path,
     opset_version=18,
     input_names=["agent", "target"],
@@ -106,3 +108,4 @@ print("model saved")
 while True:
     action, _ = model.predict(state)
     observation, reward, done, info = vec_env.step(action)
+    print(reward)

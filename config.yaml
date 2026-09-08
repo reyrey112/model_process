@@ -3,26 +3,26 @@ column_config:
     action_feed_flow_rate: 0
     action_coolant_flow_rate: 1
     action_agitator_speed_rpm: 2
-    action_temp_setpoint: 3
-    action_pressure_setpoint: 4
-    state_ambient_temp_effect: 5
-    state_reactor_temp: 6
-    state_reactor_pressure: 7
-    state_reaction_rate: 8
-    state_conversion_rate: 9
-    state_selectivity: 10
-    state_yield_pct: 11
-    state_vibration_rms: 12
-    state_motor_current: 13
-    state_power_consumption_kw: 14
-    state_operating_regime_A: 15
-    state_operating_regime_B: 16
-    state_reactor_id_A_R1: 17
-    state_reactor_id_A_R2: 18
-    state_reactor_id_A_R3: 19
-    state_reactor_id_B_R1: 20
-    state_reactor_id_B_R2: 21
-    state_reactor_id_B_R3: 22
+    state_ambient_temp_effect: 3
+    state_reactor_temp: 4
+    state_reactor_pressure: 5
+    state_reaction_rate: 6
+    state_conversion_rate: 7
+    state_selectivity: 8
+    state_yield_pct: 9
+    state_vibration_rms: 10
+    state_motor_current: 11
+    state_power_consumption_kw: 12
+    state_operating_regime_A: 13
+    state_operating_regime_B: 14
+    state_reactor_id_A_R1: 15
+    state_reactor_id_A_R2: 16
+    state_reactor_id_A_R3: 17
+    state_reactor_id_B_R1: 18
+    state_reactor_id_B_R2: 19
+    state_reactor_id_B_R3: 20
+    target_temp_setpoint: 21
+    target_pressure_setpoint: 22
     quality: 23
     Timestamp: 24
   state_columns:
@@ -48,10 +48,11 @@ column_config:
   - action_feed_flow_rate
   - action_coolant_flow_rate
   - action_agitator_speed_rpm
-  - action_temp_setpoint
-  - action_pressure_setpoint
+  target_columns:
+  - target_temp_setpoint
+  - target_pressure_setpoint
   other_columns:
   - quality
   - Timestamp
-onnx_dynamic_model_path: models/pytorch_dynamic_models/VAE_industrial
+onnx_dynamic_model_path: models\pytorch_dynamic_models/VAE_industrial
 onnx_RL_model_path: models/RL_ONNX/ONNX_td3.onnx

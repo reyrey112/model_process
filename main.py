@@ -8,7 +8,7 @@ from pathlib import Path
 
 CSV_PATH = "csvs/raw/chemical_process_timeseries.csv"
 RAW_CSV_NAME = "chemical_process_timeseries.csv"
-CLEAN_CSV_PATH = f"csvs/clean/{RAW_CSV_NAME}"
+CLEAN_CSV_PATH = f"csvs/clean/clean_{RAW_CSV_NAME}"
 
 
 FOLDS = 2
@@ -24,22 +24,23 @@ STRIDE = 25
 QUALITY_WEIGHT = 0.25
 
 
-
 def main():
     # if file exists in clean csv path then option to skip
     # csv_data = CSVData(csv_path=CSV_PATH, csv_name=RAW_CSV_NAME)
     # csv_data.run_pipeline()
-
+    
     df = pd.read_csv(CLEAN_CSV_PATH)
+
 
     with open("config.yaml", "r") as file:
         config = yaml.safe_load(file)
     state_columns: list = config["column_config"]["state_columns"]
     action_columns: list = config["column_config"]["action_columns"]
+    target_columns: list = config["column_config"]["target_columns"]
     column_indexes: dict = config["column_config"]["column_indexes"]
 
     ENCODER_INPUT_FEATURES = len(column_indexes) - 1
-    DECODER_OUTPUT_STATE_FEATURES = len(state_columns) 
+    DECODER_OUTPUT_STATE_FEATURES = len(state_columns)
 
     model = VAE(
         input_features=ENCODER_INPUT_FEATURES,
@@ -62,6 +63,8 @@ def main():
         batch_size=BATCH_SIZE,
         column_indexes=column_indexes,
         state_columns=state_columns,
+        action_columns=action_columns,
+        target_columns=target_columns,
     )
 
 
