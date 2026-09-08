@@ -104,8 +104,9 @@ torch.onnx.export(
 
 yaml_add_or_update(key="onnx_RL_model_path", value=onnx_RL_model_path)
 print("model saved")
-
+import time
 while True:
     action, _ = model.predict(state)
     observation, reward, done, info = vec_env.step(action)
     print(reward)
+    time.sleep(0.5)

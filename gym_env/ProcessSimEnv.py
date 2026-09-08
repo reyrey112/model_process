@@ -155,6 +155,9 @@ class ProcessSimEnv(gym.Env):
 
         reward = math.exp(-abs(next_quality - self._quality_score))
 
+        # print(f"RLMODEL Quality: {next_quality}")
+        # print(f"DYNAMIC Quality: {self._quality_score}")
+
         self._agent_location = next_state_target
         self._quality_score = next_quality
 
