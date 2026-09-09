@@ -26,7 +26,7 @@ outputs = session.run(
     ["output_name", "output_mu", "output_logvar"],
     {"input_name": single_row}
 )
-output, mu, logvar = outputs
+output, mu, logvar = output
 print("output:", output.shape)
 print("mu:", mu.shape)
 print("logvar:", logvar.shape)

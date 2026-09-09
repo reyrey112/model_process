@@ -11,13 +11,12 @@ ort_session = ort.InferenceSession(
     providers=["CUDAExecutionProvider", "CPUExecutionProvider"],
 )
 
+agent_input = np.array([[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]], dtype=np.float32)
+target_input = np.array([[1]], dtype=np.float32)
 
-def get_action(obs: dict) -> np.ndarray:
-    agent_input = obs["agent"].astype(np.float32).reshape(1, -1)
-    target_input = obs["target"].astype(np.float32).reshape(1, -1)
-    outputs = ort_session.run(
-        ["action"], {"agent": agent_input, "target": target_input}
-    )
-    return outputs[0][0]
+outputs = ort_session.run(
+    ["action"], {"agent": agent_input, "target": target_input}
+)
+print(outputs[0][0])
 
 
