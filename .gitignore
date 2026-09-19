@@ -1,11 +1,11 @@
 # models
-/models
+/ML_models
 /csvs
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
 *$py.class
-
+*.db
 # C extensions
 *.so
 

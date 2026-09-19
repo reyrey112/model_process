@@ -39,6 +39,7 @@ STATE_TARGET_STREAM_NAME: str = (
 ACTION_STATE_TARGET_STREAM_NAME: str = (
     yaml_key_check(config, "action_state_target_stream_name") or "action_state_target"
 )
+ACTION_STREAM_NAME: str = yaml_key_check(config, "action_stream_name") or "action"
 STATE_COLUMNS: list = config["column_config"]["state_columns"]
 ACTION_COLUMN: list = config["column_config"]["action_columns"]
 TARGET_COLUMNS: list = config["column_config"]["target_columns"]
@@ -101,15 +102,15 @@ inputs = [x.name for x in session.get_inputs()]
 
 input_name = session.get_inputs()[0].name
 
-count=0
+count = 0
 while 0 < 1:  # adding stop conditions
 
     # wait for new row in redis
     try:
-        latest_state_target_stream = r.xread(
-            block=10000, streams={STATE_TARGET_STREAM_NAME: "$"}
+        latest_action_state_target_stream = r.xread(
+            block=10000, streams={ACTION_STATE_TARGET_STREAM_NAME: "$"}
         )
-        state_target_t_dict = latest_state_target_stream[0][1][0][1]
+        latest_action_state_target_dict = latest_action_state_target_stream[0][1][0][1]
     except Exception as e:  # make more specific
         # if new row doesn't appear for x amount of time
         # route to BC model for action_t
@@ -126,7 +127,7 @@ while 0 < 1:  # adding stop conditions
     state_target_t_array = np.array([], dtype=np.float32)
     state_target_t_array = np.append(
         state_target_t_array,
-        [np.float32(state_target_t_dict[x]) for x in STATE_TARGET_COLUMNS],
+        [np.float32(latest_action_state_target_dict[x]) for x in STATE_TARGET_COLUMNS],
     )
 
     quality_t_array = np.asarray(
@@ -144,14 +145,11 @@ while 0 < 1:  # adding stop conditions
     action_t_dict = {
         ACTION_COLUMN[x]: float(action_t[x]) for x in range(len(ACTION_COLUMN))
     }
-    action_state_target_t_dict = action_t_dict | state_target_t_dict 
-    action_state_target_t_dict["quality"] = float(quality_t_array[0][0])
-    action_state_target_t_dict["Timestamp"] = f"{datetime.now()}"
+    # action_state_target_t_dict = action_t_dict | state_target_t_dict
+    # action_state_target_t_dict["quality"] = float(quality_t_array[0][0])
+    # action_state_target_t_dict["Timestamp"] = f"{datetime.now()}"
 
-    # tiny delay
-    time.sleep(0.005)
-    r.xadd(ACTION_STATE_TARGET_STREAM_NAME, action_state_target_t_dict)
+    r.xadd(ACTION_STREAM_NAME, action_t_dict)
     print(f"added to redis{count}")
     count += 1
     # loop back
-

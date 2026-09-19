@@ -29,7 +29,23 @@ source "${venv}"/bin/activate
 "${venv}"/bin/pip install uv
 
 sudo apt update && sudo apt install -y --no-install-recommends 'build-essential'
-"${venv}"/bin/uv pip install -r requirements.txt
+"${venv}"/bin/uv sync
 
-sudo bash ~/model_process/process_loop/process_loop_setup.sh
+mkdir -p ~/.aws
+if [ ! -f ~/.aws/config ]; then
+    echo "[default]
+region = us-east-2" > ~/.aws/config
+fi
 
+venv_model_process/bin/python download_from_ssm.py
+
+export SSL_CERTIFICATE=/etc/letsencrypt/live/${SERVER_NAME}/fullchain.pem
+export SSL_CERTIFICATE_KEY=/etc/letsencrypt/live/${SERVER_NAME}/privkey.pem
+
+sudo snap install aws-cli --classic
+sudo aws ecr get-login-password --region us-east-2 | sudo docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-2.amazonaws.com
+
+# sudo docker-compose pull
+sudo docker container prune -f
+sudo docker image prune --force
+sudo docker-compose -f docker-compose.yaml up -d
