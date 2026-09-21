@@ -1,22 +1,27 @@
 #!/bin/bash
 
 sudo apt update && sudo apt upgrade -y
-sudo apt install gnome-terminal
-sudo snap install docker
+sudo apt install -y gnome-terminal
+# sudo snap install -y docker
 sudo apt install git -y
 
-if [ -d "/home/ubuntu/model_process" ]; then
-    cd /home/ubuntu/model_process && git pull
+export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/model_process_deploy -o StrictHostKeyChecking=accept-new"
+REPO="git@github.com:reyrey112/model_process.git"
+
+if [ -d "$HOME/model_process" ]; then
+    echo "Repo exists"
+    cd "$HOME/model_process" && git pull
 else
-    git clone https://github.com/reyrey112/model_process /home/ubuntu/model_process
-    cd /home/ubuntu/model_process
+    echo "Repo does not exist, pulling"
+    git clone "$REPO" "$HOME/model_process"
+    cd "$HOME/model_process"
 fi
 
 
-sudo apt install software-properties-common
+sudo apt install -y software-properties-common
 sudo add-apt-repository -y ppa:deadsnakes/ppa
 sudo apt update
-sudo apt install python3.13 python3.13-venv python3.13-dev
+sudo apt install -y python3.13 python3.13-venv python3.13-dev
 
 # export venv = "venv_model_process"
 
