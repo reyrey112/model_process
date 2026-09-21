@@ -59,7 +59,7 @@ def main():
 
     action_state_target_t_dict["Timestamp"] = f"{datetime.now()}"
     r.xadd(ACTION_STATE_TARGET_STREAM_NAME, action_state_target_t_dict)
-    print(f"added to redis{count}")
+    print(f"START: added to redis{count}")
     count += 1
 
 if __name__ == "__main__":

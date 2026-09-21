@@ -59,6 +59,9 @@ fi
 
 echo "Redis seeded, process starting"
 
-uv run "$HOME/model_process/process_dyanmic.py" &
-uv run "$HOME/model_process/process_control.py" &
+trap 'kill 0' EXIT
+
+uv run "$HOME/model_process/process_loop/process_dynamic.py" &
+uv run "$HOME/model_process/process_loop/process_control.py" &
 wait -n
+echo "One of the scripts exited, shutting down..."

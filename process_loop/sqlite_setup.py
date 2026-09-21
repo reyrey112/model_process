@@ -172,7 +172,7 @@ def main():
             )
             action_state_target_dict = action_state_target[0][1][0][1]
             log_data_local(conn, cur, action_state_target_dict)
-            print(f"logged in DB and queue: {count}")
+            print(f"LOCAL: logged in DB and queue: {count}")
             count += 1
     except KeyboardInterrupt:
         print("Shutting down cleanly.")

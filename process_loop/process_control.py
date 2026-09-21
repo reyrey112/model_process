@@ -151,7 +151,7 @@ def main():
         # action_state_target_t_dict["Timestamp"] = f"{datetime.now()}"
 
         r.xadd(ACTION_STREAM_NAME, action_t_dict)
-        print(f"added to redis{count}")
+        print(f"CONTROL: added to redis{count}")
         count += 1
         # loop back
 

@@ -1,14 +1,14 @@
 services:
-  timescaledb:
-    image: timescaledb/timescaledb:latest-pg17
-    container_name: timescaledb
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - TIMESCALEDB_TELEMETRY=off
-    volumes:
-      - timescaledb-data:/var/lib/postgresql/data
+  # timescaledb:
+  #   image: timescaledb/timescaledb:latest-pg17
+  #   container_name: timescaledb
+  #   ports:
+  #     - "5432:5432"
+  #   environment:
+  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+  #     - TIMESCALEDB_TELEMETRY=off
+  #   volumes:
+  #     - timescaledb-data:/var/lib/postgresql/data
 
   redis:
     image: redis:latest
