@@ -36,50 +36,37 @@ ACTION_COLUMN: list = config["column_config"]["action_columns"]
 TARGET_COLUMNS: list = config["column_config"]["target_columns"]
 COLUMN_INDEXES: dict = config["column_config"]["column_indexes"]
 
-r = redis.Redis(
-    host=HOSTNAME, port=REDIS_PORT, decode_responses=True, password="reyden"
-)
+def main():
+    r = redis.Redis(
+        host=HOSTNAME, port=REDIS_PORT, decode_responses=True, password="reyden"
+    )
 
-# # check if data already exists, if not create data
-# latest_item = r.xrevrange(STATE_STREAM_NAME, max="+", min="-", count=1)
-
-# if latest_item:
-#     msg_id, state_target_t = latest_item[0]
-# else:
-# initiate state of T function from excel sheet
-all_columns = ACTION_COLUMN + STATE_COLUMNS + TARGET_COLUMNS + ["quality"]
-action_state_target_t = random_action_state_target_row(
-    csv_path=CLEAN_CSV_PATH,
-    columns=all_columns,
-)
+    all_columns = ACTION_COLUMN + STATE_COLUMNS + TARGET_COLUMNS + ["quality"]
+    action_state_target_t = random_action_state_target_row(
+        csv_path=CLEAN_CSV_PATH,
+        columns=all_columns,
+    )
 
 
-# add data to state stream
-action_state_target_t_dict = {
-    all_columns[x]: float(action_state_target_t[x]) for x in range(len(all_columns))
-}
+    # add data to state stream
+    action_state_target_t_dict = {
+        all_columns[x]: float(action_state_target_t[x]) for x in range(len(all_columns))
+    }
 
-# time of first timestamp (make it do every 1s for now)
-import time
-count = 0 
+    # time of first timestamp (make it do every 1s for now)
+    import time
+    count = 0 
 
-action_state_target_t_dict["Timestamp"] = f"{datetime.now()}"
-r.xadd(ACTION_STATE_TARGET_STREAM_NAME, action_state_target_t_dict)
-print(f"added to redis{count}")
-count += 1
-time.sleep(1)
+    action_state_target_t_dict["Timestamp"] = f"{datetime.now()}"
+    r.xadd(ACTION_STATE_TARGET_STREAM_NAME, action_state_target_t_dict)
+    print(f"added to redis{count}")
+    count += 1
 
-# get stream id for blocking
-# msg_id, _ = r.xrevrange(STATE_STREAM_NAME, max="+", min="-", count=1)[0]
+if __name__ == "__main__":
+    try:
+        main()
+        sys.exit(0)
 
-# run dynamic model inference
-# _, action_t, _, _ = session.run(outputs, {f"{input_name}": state_target_t})
-
-# # log additonal information
-
-# # send action_t to redis
-# action_t_dict = {ACTION_COLUMNS[x]: action_t[x] for x in range(len(ACTION_COLUMNS))}
-# action_t_dict["Timestamp"] = f"{time}"
-# r.xadd(ACTION_STREAM_NAME, action_t_dict)
-
-# continue onto loop
+    except Exception as e:
+        print(f"error {e}")
+        sys.exit(1)

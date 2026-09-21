@@ -49,7 +49,7 @@ r = redis.Redis(
 # internal thread safe queue
 data_queue = queue.Queue()
 
-from app.backend import api_client as api
+# from app.backend import api_client as api
 
 
 def init_local_db():
@@ -102,78 +102,82 @@ def log_data_local(conn, cur, action_state_target_dict: dict):
     data_queue.put(data_dict)
 
 
-def cloud_sync_worker():
-    """Background thread that makes micro-batches for cloud upload"""
+# def cloud_sync_worker():
+#     """Background thread that makes micro-batches for cloud upload"""
 
-    # initilize AWS Timestream Clint
-    # ts_client = boto3.client("timestream-write", region_name="us-east-1")
+#     # initilize AWS Timestream Clint
+#     # ts_client = boto3.client("timestream-write", region_name="us-east-1")
 
-    # ensuring correct schema is used
-    all_columns = ["Timestamp"] + ALL_COLUMNS
-    value_names_sql = ",".join(f'"{col}" ' for col in all_columns)
-    value_holders_sql = ",".join("?" for col in all_columns)
-
-
-    batch = []
-
-    # pull items out of queue, block if empty
-    item = data_queue.get()
-    batch.append(item)
-
-    while len(batch) < 1000:
-        try:
-            batch.append(data_queue.get_nowait())
-        except queue.Empty:
-            break
-
-    # convert batch to list of tuples for executemany
-
-    data_tuples = []
-
-    for i in batch:
-        data = tuple(i[x] for x in all_columns)
-        data_tuples.append(data)
-
-    success = False
-    sec = 2
-    print(f"inputting {len(data_tuples)} into db")
-
-    while not success:
-        try:
-            print(f"inputting {len(data_tuples)} into db")
-            response = api.db_write(data_tuples=data_tuples, all_columns=all_columns)
-            if response["status"] == "success":
-                print(f"Successfully inserted {response["inserted_records"]} into db")
-
-                for _ in range(len(batch)):
-                    data_queue.task_done()
-
-                success = True
-
-        except Exception as e:
-            print(f"Network error: {e}. Retrying in {sec} seconds")
-            time.sleep(sec)
-            sec *= 2
+#     # ensuring correct schema is used
+#     all_columns = ["Timestamp"] + ALL_COLUMNS
+#     value_names_sql = ",".join(f'"{col}" ' for col in all_columns)
+#     value_holders_sql = ",".join("?" for col in all_columns)
 
 
-# --- Initialize and Run ---
-conn, cur = init_local_db()
+#     batch = []
 
-# Start background cloud syncing
-threading.Thread(target=cloud_sync_worker, daemon=True).start()
-count = 0
-try:
-    print("Starting data ingestion loop at 200 Hz...")
-    while True:
-        # runs whenevr new redis data is recieveed
-        action_state_target = r.xread(
-            block=10000, streams={ACTION_STATE_TARGET_STREAM_NAME: "$"}
-        )
-        action_state_target_dict = action_state_target[0][1][0][1]
-        log_data_local(conn, cur, action_state_target_dict)
-        print(f"logged in DB and queue: {count}")
-        count += 1
-except KeyboardInterrupt:
-    print("Shutting down cleanly.")
-finally:
-    conn.close()
+#     # pull items out of queue, block if empty
+#     item = data_queue.get()
+#     batch.append(item)
+
+#     while len(batch) < 1000:
+#         try:
+#             batch.append(data_queue.get_nowait())
+#         except queue.Empty:
+#             break
+
+#     # convert batch to list of tuples for executemany
+
+#     data_tuples = []
+
+#     for i in batch:
+#         data = tuple(i[x] for x in all_columns)
+#         data_tuples.append(data)
+
+#     success = False
+#     sec = 2
+#     print(f"inputting {len(data_tuples)} into db")
+
+#     while not success:
+#         try:
+#             print(f"inputting {len(data_tuples)} into db")
+#             response = api.db_write(data_tuples=data_tuples, all_columns=all_columns)
+#             if response["status"] == "success":
+#                 print(f"Successfully inserted {response["inserted_records"]} into db")
+
+#                 for _ in range(len(batch)):
+#                     data_queue.task_done()
+
+#                 success = True
+
+#         except Exception as e:
+#             print(f"Network error: {e}. Retrying in {sec} seconds")
+#             time.sleep(sec)
+#             sec *= 2
+
+def main():
+
+    # --- Initialize and Run ---
+    conn, cur = init_local_db()
+
+    # Start background cloud syncing
+    # threading.Thread(target=cloud_sync_worker, daemon=True).start()
+    count = 0
+    try:
+        print("Starting data ingestion loop at 200 Hz...")
+        while True:
+            # runs whenevr new redis data is recieveed
+            action_state_target = r.xread(
+                block=10000, streams={ACTION_STATE_TARGET_STREAM_NAME: "$"}
+            )
+            action_state_target_dict = action_state_target[0][1][0][1]
+            log_data_local(conn, cur, action_state_target_dict)
+            print(f"logged in DB and queue: {count}")
+            count += 1
+    except KeyboardInterrupt:
+        print("Shutting down cleanly.")
+    finally:
+        conn.close()
+
+if __name__ == "__main__":
+    main()

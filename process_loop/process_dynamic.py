@@ -60,93 +60,96 @@ def quality_distance(state_target: np.ndarray) -> np.float32:
     yield_diff = abs(state_target[COLUMN_INDEXES["state_yield_pct"]] - 1)
     return np.float32(temp_diff + pressure_diff + yield_diff)
 
+def main ():
+    session = ort.InferenceSession(f"{root_dir}/{DYNAMIC_MODEL_PATH}")
 
-session = ort.InferenceSession(f"{root_dir}/{DYNAMIC_MODEL_PATH}")
+    # Check input/output names and shapes (useful for sanity-checking)
+    for inp in session.get_inputs():
+        print(inp.name, inp.shape, inp.type)
+    for out in session.get_outputs():
+        print(out.name, out.shape, out.type)
 
-# Check input/output names and shapes (useful for sanity-checking)
-for inp in session.get_inputs():
-    print(inp.name, inp.shape, inp.type)
-for out in session.get_outputs():
-    print(out.name, out.shape, out.type)
+    outputs = [x.name for x in session.get_outputs()]
+    inputs = [x.name for x in session.get_inputs()]
 
-outputs = [x.name for x in session.get_outputs()]
-inputs = [x.name for x in session.get_inputs()]
-
-input_name = session.get_inputs()[0].name
+    input_name = session.get_inputs()[0].name
 
 
-r = redis.Redis(
-    host=HOSTNAME, port=REDIS_PORT, decode_responses=True, password="reyden"
-)
+    r = redis.Redis(
+        host=HOSTNAME, port=REDIS_PORT, decode_responses=True, password="reyden"
+    )
 
-count = 0
-while 0 < 1:
+    count = 0
+    while 0 < 1:
 
-    # wait for new row in redis
-    try:
-        latest_action_state_target_stream = r.xread(
-            streams={ACTION_STATE_TARGET_STREAM_NAME: "+"}, count=1
+        # wait for new row in redis
+        try:
+            latest_action_state_target_stream = r.xread(
+                streams={ACTION_STATE_TARGET_STREAM_NAME: "+"}, count=1
+            )
+
+            action_state_target_t_dict = latest_action_state_target_stream[0][1][0][1]
+        except Exception as e:  # make more specific
+            # if new row doesn't appear for x amount of time
+            # route to BC model for action_t
+            pass
+
+        action_state_target_t_array = np.array([], dtype=np.float32)
+        action_state_target_t_array = np.append(
+            action_state_target_t_array,
+            [np.float32(action_state_target_t_dict[x]) for x in ALL_COLUMNS],
+        )
+        action_state_target_t_3darray = action_state_target_t_array.reshape(
+            1, 1, len(ALL_COLUMNS)
         )
 
-        action_state_target_t_dict = latest_action_state_target_stream[0][1][0][1]
-    except Exception as e:  # make more specific
-        # if new row doesn't appear for x amount of time
-        # route to BC model for action_t
-        pass
+        t_t1_delta, mu, logvar = session.run(
+            ["output_name", "output_mu", "output_logvar"],
+            {"input_name": action_state_target_t_3darray},
+        )
 
-    action_state_target_t_array = np.array([], dtype=np.float32)
-    action_state_target_t_array = np.append(
-        action_state_target_t_array,
-        [np.float32(action_state_target_t_dict[x]) for x in ALL_COLUMNS],
-    )
-    action_state_target_t_3darray = action_state_target_t_array.reshape(
-        1, 1, len(ALL_COLUMNS)
-    )
+        #tiny delay between readings
+        time.sleep(1)
+        try:
+            new_action = r.xread(streams={ACTION_STREAM_NAME: "$"}, count=1)
+            action_t_1_dict = new_action[0][1][0][1]
 
-    t_t1_delta, mu, logvar = session.run(
-        ["output_name", "output_mu", "output_logvar"],
-        {"input_name": action_state_target_t_3darray},
-    )
+        except Exception as e:
+            action_t_1_dict = {
+                ACTION_COLUMN[x]: float(action_state_target_t_dict[ACTION_COLUMN[x]])
+                for x in range(len(ACTION_COLUMN))
+            }
 
-    #tiny delay between readings
-    time.sleep(0.05)
-    try:
-        new_action = r.xread(streams={ACTION_STREAM_NAME: "$"}, count=1)
-        action_t_1_dict = new_action[0][1][0][1]
+        state_t = action_state_target_t_array[[COLUMN_INDEXES[x] for x in STATE_COLUMNS]]
+        state_t_1 = np.add(state_t, t_t1_delta).flatten()
 
-    except Exception as e:
-        action_t_1_dict = {
-            ACTION_COLUMN[x]: float(action_state_target_t_dict[ACTION_COLUMN[x]])
-            for x in range(len(ACTION_COLUMN))
+        target_dict = {
+            TARGET_COLUMNS[x]: float(action_state_target_t_dict[TARGET_COLUMNS[x]])
+            for x in range(len(TARGET_COLUMNS))
+        }
+        state_t_1_dict = {
+            STATE_COLUMNS[x]: float(state_t_1[x]) for x in range(len(STATE_COLUMNS))
         }
 
-    state_t = action_state_target_t_array[[COLUMN_INDEXES[x] for x in STATE_COLUMNS]]
-    state_t_1 = np.add(state_t, t_t1_delta).flatten()
+        quality_t_array = np.asarray(
+            quality_distance(state_target=action_state_target_t_array), dtype=np.float32
+        ).reshape(1, 1)
 
-    target_dict = {
-        TARGET_COLUMNS[x]: float(action_state_target_t_dict[TARGET_COLUMNS[x]])
-        for x in range(len(TARGET_COLUMNS))
-    }
-    state_t_1_dict = {
-        STATE_COLUMNS[x]: float(state_t_1[x]) for x in range(len(STATE_COLUMNS))
-    }
+        action_state_target_t_1_dict = action_t_1_dict | state_t_1_dict | target_dict
 
-    quality_t_array = np.asarray(
-        quality_distance(state_target=action_state_target_t_array), dtype=np.float32
-    ).reshape(1, 1)
+        action_state_target_t_1_dict["quality"] = float(quality_t_array[0][0])
+        action_state_target_t_1_dict["Timestamp"] = f"{datetime.now()}"
 
-    action_state_target_t_1_dict = action_t_1_dict | state_t_1_dict | target_dict
+        r.xadd(ACTION_STATE_TARGET_STREAM_NAME, action_state_target_t_1_dict)
 
-    action_state_target_t_1_dict["quality"] = float(quality_t_array[0][0])
-    action_state_target_t_1_dict["Timestamp"] = f"{datetime.now()}"
+        print(f"added to redis{count}")
+        count += 1
 
-    r.xadd(ACTION_STATE_TARGET_STREAM_NAME, action_state_target_t_1_dict)
+        # log mu and logvar
 
-    print(f"added to redis{count}")
-    count += 1
+        # send state_t_1 to redis
 
-    # log mu and logvar
+        # loop back
 
-    # send state_t_1 to redis
-
-    # loop back
+if __name__ == "__main__":
+    main()
