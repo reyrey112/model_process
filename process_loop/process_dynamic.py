@@ -109,7 +109,7 @@ def main ():
         )
 
         #tiny delay between readings
-        time.sleep(1)
+        time.sleep(0.1)
         try:
             new_action = r.xread(streams={ACTION_STREAM_NAME: "$"}, count=1)
             action_t_1_dict = new_action[0][1][0][1]
@@ -142,7 +142,7 @@ def main ():
 
         r.xadd(ACTION_STATE_TARGET_STREAM_NAME, action_state_target_t_1_dict)
 
-        print(f"added to redis{count}")
+        print(f"DYNAMIC: added to redis{count}")
         count += 1
 
         # log mu and logvar
