@@ -35,7 +35,7 @@ sudo apt install -y python3.13 python3.13-venv python3.13-dev
 sudo apt update && sudo apt install -y --no-install-recommends 'build-essential'
 # "${venv}"/bin/uv pip install -r requirements.txt
 
-python3.13 pip install uv
+# python3.13 pip install uv
 
 uv sync
 
