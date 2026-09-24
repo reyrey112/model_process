@@ -19,17 +19,16 @@ sudo apt update
 sudo apt install python3.13 python3.13-venv python3.13-dev
 sudo apt install -y certbot python3-certbot-nginx
 
-export venv = "venv_model_process"
 
-if [ ! -d "${venv}" ]; then
-    python3.13 -m "${venv}"
+if [ ! -d "venv_model_process" ]; then
+    python3.13 -m venv venv_model_process
 fi
 
-source "${venv}"/bin/activate
-"${venv}"/bin/pip install uv
+source venv_model_process/bin/activate
+venv_model_process/bin/pip install uv
 
 sudo apt update && sudo apt install -y --no-install-recommends 'build-essential'
-"${venv}"/bin/uv sync
+venv_model_process/bin/uv sync
 
 mkdir -p ~/.aws
 if [ ! -f ~/.aws/config ]; then
@@ -37,7 +36,13 @@ if [ ! -f ~/.aws/config ]; then
 region = us-east-2" > ~/.aws/config
 fi
 
-venv_model_process/bin/python download_from_ssm.py
+venv_model_process/bin/uv run download_from_ssm.py
+sudo apt update
+sudo apt install nginx
+
+set -a
+source /home/ubuntu/MLAPP/.env
+set +a
 
 export SSL_CERTIFICATE=/etc/letsencrypt/live/${SERVER_NAME}/fullchain.pem
 export SSL_CERTIFICATE_KEY=/etc/letsencrypt/live/${SERVER_NAME}/privkey.pem
@@ -45,6 +50,8 @@ export SSL_CERTIFICATE_KEY=/etc/letsencrypt/live/${SERVER_NAME}/privkey.pem
 envsubst '${FASTAPI_PORT} ${SERVER_NAME} ${SSL_CERTIFICATE} ${SSL_CERTIFICATE_KEY}' \
     < /home/ubuntu/model_process/nginx.conf.template \
     > /etc/nginx/nginx.conf
+
+nginx -t && systemctl restart nginx
 
 # sudo snap install aws-cli --classic
 # sudo aws ecr get-login-password --region us-east-2 | sudo docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-2.amazonaws.com

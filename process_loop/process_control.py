@@ -97,16 +97,16 @@ def main():
     # )
     session = ort.InferenceSession(f"{root_dir}/{ONNX_RL_MODEL_PATH}")
 
-    # Check input/output names and shapes (useful for sanity-checking)
-    for inp in session.get_inputs():
-        print(inp.name, inp.shape, inp.type)
-    for out in session.get_outputs():
-        print(out.name, out.shape, out.type)
+    # # Check input/output names and shapes (useful for sanity-checking)
+    # for inp in session.get_inputs():
+    #     print(inp.name, inp.shape, inp.type)
+    # for out in session.get_outputs():
+    #     print(out.name, out.shape, out.type)
 
-    outputs = [x.name for x in session.get_outputs()]
-    inputs = [x.name for x in session.get_inputs()]
+    # outputs = [x.name for x in session.get_outputs()]
+    # inputs = [x.name for x in session.get_inputs()]
 
-    input_name = session.get_inputs()[0].name
+    # input_name = session.get_inputs()[0].name
 
     count = 0
     while 0 < 1:  # adding stop conditions

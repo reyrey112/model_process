@@ -36,6 +36,9 @@ sudo apt update && sudo apt install -y --no-install-recommends 'build-essential'
 # "${venv}"/bin/uv pip install -r requirements.txt
 
 # python3.13 pip install uv
+set -a
+source "$HOME/model_process/.env"
+set +a
 
 uv sync
 
@@ -44,7 +47,7 @@ EXIT_CODE=0
 sudo docker compose pull
 sudo docker container prune -f
 sudo docker image prune --force
-sudo docker compose -f local-compose.yaml up -d --wait --wait-timeout 60 || {
+sudo docker compose -f "$HOME/model_process/local-compose.yaml" up -d --wait --wait-timeout 60 || {
     echo "Containers failed to become healthy"
     exit 1
 }

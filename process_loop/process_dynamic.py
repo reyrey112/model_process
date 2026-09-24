@@ -67,15 +67,15 @@ def main ():
     session = ort.InferenceSession(f"{root_dir}/{DYNAMIC_MODEL_PATH}")
 
     # Check input/output names and shapes (useful for sanity-checking)
-    for inp in session.get_inputs():
-        print(inp.name, inp.shape, inp.type)
-    for out in session.get_outputs():
-        print(out.name, out.shape, out.type)
+    # for inp in session.get_inputs():
+    #     print(inp.name, inp.shape, inp.type)
+    # for out in session.get_outputs():
+    #     print(out.name, out.shape, out.type)
 
-    outputs = [x.name for x in session.get_outputs()]
-    inputs = [x.name for x in session.get_inputs()]
+    # outputs = [x.name for x in session.get_outputs()]
+    # inputs = [x.name for x in session.get_inputs()]
 
-    input_name = session.get_inputs()[0].name
+    # input_name = session.get_inputs()[0].name
 
 
     r = redis.Redis(

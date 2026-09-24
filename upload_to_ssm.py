@@ -7,26 +7,16 @@ import sys
 ENV_FILE = ".env"
 SSM_PREFIX = "/model_process/prod"  
 SENSITIVE_KEYS = {
-    "SECRET_KEY",
-    "AWS_STORAGE_BUCKET_NAME",
-    "AWS_ACCESS_KEY_ID",
-    "AWS_SECRET_ACCESS_KEY",
-    "DJANGO_POSTGRES_USER",
-    "DJANGO_POSTGRES_PASSWORD",
-    "DJANGO_POSTGRES_DB",
-    "MLFLOW_POSTGRES_USER",
-    "MLFLOW_POSTGRES_PASSWORD",
-    "MLFLOW_POSTGRES_DB",
-    "MYSQL_ROOT_PASSWORD",
-    "MYSQL_USER",
-    "MYSQL_PASSWORD",
-    "MYSQL_DATABASE",
-    "ZENML_STORE_USERNAME",
-    "ZENML_STORE_PASSWORD",
-    "MLFLOW_TRACKING_USERNAME",
-    "MLFLOW_TRACKING_PASSWORD",
-    "MEDIA_URL",
-    "GITHUB_PAT"
+    "POSTGRES_USER",
+    "POSTGRES_PASSWORD",
+    "POSTGRES_DB",
+    "ADMIN_SECRET",
+    "API_BASE",
+    "SERVER_NAME",
+    "AWS_ELASTIC_IP",
+    "REDIS_PORT",
+    "FASTAPI_PORT",
+    "REDIS_PASSWORD",
 }
 # --------------
 
@@ -49,7 +39,7 @@ def upload_to_ssm(variables, prefix, sensitive_keys):
     if os.getenv('GITHUB_ACTIONS'):
         session = boto3.Session()
     else:
-        session = boto3.Session(profile_name="admin")
+        session = boto3.Session(profile_name="default")
 
     client = session.client(
         "ssm",

@@ -19,6 +19,8 @@ if root_dir not in sys.path:
 
 from util.yaml_check import yaml_key_check
 from util.state_input import random_action_state_target_row
+from dotenv import load_dotenv
+load_dotenv()
 
 with open("config.yaml", "r") as file:
     config = yaml.safe_load(file)
@@ -26,8 +28,10 @@ with open("config.yaml", "r") as file:
 RAW_CSV_NAME = "chemical_process_timeseries.csv"
 CLEAN_CSV_PATH = f"csvs/clean/clean_{RAW_CSV_NAME}"
 
-HOSTNAME: str = yaml_key_check(config, "hostname") or "localhost"
-REDIS_PORT: int = yaml_key_check(config, "redis_port") or 6379
+HOSTNAME = os.environ.get("HOSTNAME", "localhost")
+REDIS_PORT = os.environ.get("REDIS_PORT")
+REDIS_PASSWORD = os.environ.get("REDIS_PASSWORD")
+
 ONNX_RL_MODEL_PATH: str = config["onnx_RL_model_path"]
 ACTION_STREAM_NAME: str = yaml_key_check(config, "action_stream_name") or "action"
 ACTION_STATE_TARGET_STREAM_NAME: str = yaml_key_check(config, "action_state_target_stream_name") or "action_state_target"
@@ -38,7 +42,7 @@ COLUMN_INDEXES: dict = config["column_config"]["column_indexes"]
 
 def main():
     r = redis.Redis(
-        host=HOSTNAME, port=REDIS_PORT, decode_responses=True, password="reyden"
+        host=HOSTNAME, port=int(REDIS_PORT), decode_responses=True, password=REDIS_PASSWORD
     )
 
     all_columns = ACTION_COLUMN + STATE_COLUMNS + TARGET_COLUMNS + ["quality"]
