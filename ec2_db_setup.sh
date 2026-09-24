@@ -8,7 +8,7 @@ sudo apt install git -y
 if [ -d "/home/ubuntu/model_process" ]; then
     cd /home/ubuntu/model_process && git pull
 else
-    git clone https://github.com/reyrey112/model_process /home/ubuntu/model_process
+    git clone https://github.com/reyrey112/model_process
     cd /home/ubuntu/model_process
 fi
 
@@ -42,8 +42,12 @@ venv_model_process/bin/python download_from_ssm.py
 export SSL_CERTIFICATE=/etc/letsencrypt/live/${SERVER_NAME}/fullchain.pem
 export SSL_CERTIFICATE_KEY=/etc/letsencrypt/live/${SERVER_NAME}/privkey.pem
 
-sudo snap install aws-cli --classic
-sudo aws ecr get-login-password --region us-east-2 | sudo docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-2.amazonaws.com
+envsubst '${FASTAPI_PORT} ${SERVER_NAME} ${SSL_CERTIFICATE} ${SSL_CERTIFICATE_KEY}' \
+    < /home/ubuntu/model_process/nginx.conf.template \
+    > /etc/nginx/nginx.conf
+
+# sudo snap install aws-cli --classic
+# sudo aws ecr get-login-password --region us-east-2 | sudo docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-2.amazonaws.com
 
 # sudo docker-compose pull
 sudo docker container prune -f

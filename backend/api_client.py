@@ -34,11 +34,11 @@ API_BASE = os.environ.get("API_BASE_URL", "http://localhost:8000")
 #     return {"Authorization": f"Bearer {token}"} if token else {}
 
 
-def db_write(data_tuples: list, all_columns: list) -> dict:
+def db_write(data_tuples: list, all_columns: list, headers) -> dict:
     r = httpx.post(
-        f"{API_BASE}/query",
+        f"{API_BASE}/db/write",
         json={"data_tuples": data_tuples, "all_columns": all_columns},
-        # headers=_headers(),
+        headers=headers,
         # timeout=TIMEOUT,
     )
     r.raise_for_status()

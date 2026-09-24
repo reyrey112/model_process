@@ -12,7 +12,7 @@ import redis
 import os, sys
 from datetime import datetime
 import time
-
+from dotenv import load_dotenv
 
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -26,8 +26,11 @@ with open("config.yaml", "r") as file:
 
 from util.yaml_check import yaml_key_check
 
-HOSTNAME: str = yaml_key_check(config, "hostname") or "localhost"
-REDIS_PORT: int = yaml_key_check(config, "redis_port") or 6379
+
+HOSTNAME = os.environ.get("HOSTNAME", "localhost")
+REDIS_PORT = os.environ.get("REDIS_PORT")
+REDIS_PASSWORD = os.environ.get("REDIS_PASSWORD")
+
 DYNAMIC_MODEL_PATH = config["onnx_dynamic_model_path"]
 STATE_TARGET_STREAM_NAME: str = (
     yaml_key_check(config, "state_target_stream_name") or "state_target"
@@ -76,7 +79,7 @@ def main ():
 
 
     r = redis.Redis(
-        host=HOSTNAME, port=REDIS_PORT, decode_responses=True, password="reyden"
+        host=HOSTNAME, port=int(REDIS_PORT), decode_responses=True, password=REDIS_PASSWORD
     )
 
     count = 0

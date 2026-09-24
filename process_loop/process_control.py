@@ -14,13 +14,15 @@ import redis
 from datetime import datetime
 import os, sys
 import time
+from dotenv import load_dotenv
+
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.abspath(os.path.join(current_dir, ".."))
 
 if root_dir not in sys.path:
     sys.path.append(root_dir)
-
+load_dotenv()
 from util.yaml_check import yaml_key_check
 from util.state_input import random_action_state_target_row
 
@@ -30,8 +32,10 @@ with open("config.yaml", "r") as file:
 RAW_CSV_NAME = "chemical_process_timeseries.csv"
 CLEAN_CSV_PATH = f"csvs/clean/{RAW_CSV_NAME}"
 
-HOSTNAME: str = yaml_key_check(config, "hostname") or "localhost"
-REDIS_PORT: int = yaml_key_check(config, "redis_port") or 6379
+HOSTNAME = os.environ.get("HOSTNAME", "localhost")
+REDIS_PORT = os.environ.get("REDIS_PORT")
+REDIS_PASSWORD = os.environ.get("REDIS_PASSWORD")
+
 ONNX_RL_MODEL_PATH: str = config["onnx_RL_model_path"]
 STATE_TARGET_STREAM_NAME: str = (
     yaml_key_check(config, "state_target_stream_name") or "state_target"
@@ -66,6 +70,7 @@ def quality_distance(state_target: np.ndarray) -> np.float32:
     )
     return np.float32(temp_diff + pressure_diff + yield_diff)
 
+
 def main():
 
     # Client side caching using fast API for same conneciton? might not even be as fast
@@ -79,7 +84,7 @@ def main():
     # )
 
     r = redis.Redis(
-        host=HOSTNAME, port=REDIS_PORT, decode_responses=True, password="reyden"
+        host=HOSTNAME, port=int(REDIS_PORT), decode_responses=True, password=REDIS_PASSWORD
     )
     # r = redis.Redis(
     #     host="my-redis.cloud.redislabs.com", port=6379,
@@ -111,7 +116,9 @@ def main():
             latest_action_state_target_stream = r.xread(
                 block=10000, streams={ACTION_STATE_TARGET_STREAM_NAME: "$"}
             )
-            latest_action_state_target_dict = latest_action_state_target_stream[0][1][0][1]
+            latest_action_state_target_dict = latest_action_state_target_stream[0][1][
+                0
+            ][1]
         except Exception as e:  # make more specific
             # if new row doesn't appear for x amount of time
             # route to BC model for action_t
@@ -128,7 +135,10 @@ def main():
         state_target_t_array = np.array([], dtype=np.float32)
         state_target_t_array = np.append(
             state_target_t_array,
-            [np.float32(latest_action_state_target_dict[x]) for x in STATE_TARGET_COLUMNS],
+            [
+                np.float32(latest_action_state_target_dict[x])
+                for x in STATE_TARGET_COLUMNS
+            ],
         )
 
         quality_t_array = np.asarray(
@@ -154,6 +164,7 @@ def main():
         print(f"CONTROL: added to redis{count}")
         count += 1
         # loop back
+
 
 if __name__ == "__main__":
     main()

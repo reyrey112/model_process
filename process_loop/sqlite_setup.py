@@ -4,10 +4,15 @@ import threading
 import queue
 
 import boto3
-
+from dotenv import load_dotenv
 import yaml
 import redis
 import os, sys
+import httpx
+from backend import api_client as api
+
+
+load_dotenv()
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.abspath(os.path.join(current_dir, ".."))
@@ -49,8 +54,7 @@ r = redis.Redis(
 # internal thread safe queue
 data_queue = queue.Queue()
 
-# from app.backend import api_client as api
-
+headers = {"x-admin-key": f"{os.environ.get("ADMIN_SECRET")}"}
 
 def init_local_db():
     conn = sqlite3.connect("process.db", check_same_thread=False)
@@ -102,58 +106,57 @@ def log_data_local(conn, cur, action_state_target_dict: dict):
     data_queue.put(data_dict)
 
 
-# def cloud_sync_worker():
-#     """Background thread that makes micro-batches for cloud upload"""
-
-#     # initilize AWS Timestream Clint
-#     # ts_client = boto3.client("timestream-write", region_name="us-east-1")
-
-#     # ensuring correct schema is used
-#     all_columns = ["Timestamp"] + ALL_COLUMNS
-#     value_names_sql = ",".join(f'"{col}" ' for col in all_columns)
-#     value_holders_sql = ",".join("?" for col in all_columns)
+def cloud_sync_worker():
+    """Background thread that makes micro-batches for cloud upload"""
 
 
-#     batch = []
 
-#     # pull items out of queue, block if empty
-#     item = data_queue.get()
-#     batch.append(item)
+    # ensuring correct schema is used
+    all_columns = ["Timestamp"] + ALL_COLUMNS
+    value_names_sql = ",".join(f'"{col}" ' for col in all_columns)
+    value_holders_sql = ",".join("?" for col in all_columns)
 
-#     while len(batch) < 1000:
-#         try:
-#             batch.append(data_queue.get_nowait())
-#         except queue.Empty:
-#             break
 
-#     # convert batch to list of tuples for executemany
+    batch = []
 
-#     data_tuples = []
+    # pull items out of queue, block if empty
+    item = data_queue.get()
+    batch.append(item)
 
-#     for i in batch:
-#         data = tuple(i[x] for x in all_columns)
-#         data_tuples.append(data)
+    while len(batch) < 1000:
+        try:
+            batch.append(data_queue.get_nowait())
+        except queue.Empty:
+            break
 
-#     success = False
-#     sec = 2
-#     print(f"inputting {len(data_tuples)} into db")
+    # convert batch to list of tuples for executemany
 
-#     while not success:
-#         try:
-#             print(f"inputting {len(data_tuples)} into db")
-#             response = api.db_write(data_tuples=data_tuples, all_columns=all_columns)
-#             if response["status"] == "success":
-#                 print(f"Successfully inserted {response["inserted_records"]} into db")
+    data_tuples = []
 
-#                 for _ in range(len(batch)):
-#                     data_queue.task_done()
+    for i in batch:
+        data = tuple(i[x] for x in all_columns)
+        data_tuples.append(data)
 
-#                 success = True
+    success = False
+    sec = 2
+    print(f"inputting {len(data_tuples)} into db")
 
-#         except Exception as e:
-#             print(f"Network error: {e}. Retrying in {sec} seconds")
-#             time.sleep(sec)
-#             sec *= 2
+    while not success:
+        try:
+            print(f"inputting {len(data_tuples)} into db")
+            response = api.db_write(data_tuples=data_tuples, all_columns=all_columns, headers=headers)
+            if response["status"] == "success":
+                print(f"Successfully inserted {response["inserted_records"]} into db")
+
+                for _ in range(len(batch)):
+                    data_queue.task_done()
+
+                success = True
+
+        except Exception as e:
+            print(f"Network error: {e}. Retrying in {sec} seconds")
+            time.sleep(sec)
+            sec *= 2
 
 def main():
 
@@ -161,7 +164,7 @@ def main():
     conn, cur = init_local_db()
 
     # Start background cloud syncing
-    # threading.Thread(target=cloud_sync_worker, daemon=True).start()
+    threading.Thread(target=cloud_sync_worker, daemon=True).start()
     count = 0
     try:
         print("Starting data ingestion loop at 200 Hz...")

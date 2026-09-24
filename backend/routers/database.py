@@ -2,18 +2,24 @@ import os, sys, yaml
 from backend.models.requests import DBWriteRequest
 import psycopg
 from typing import List
-from fastapi import APIRouter, HTTPException, status, Depends, BackgroundTasks
+from fastapi import APIRouter, HTTPException, status, Header,Depends, BackgroundTasks
 from pydantic import BaseModel, Field
 import asyncpg
+from dotenv import load_dotenv
 from dependencies import get_db_pool
+import secrets
 
+load_dotenv()
 
+ADMIN_SECRET = os.environ.get("ADMIN_SECRET")
 
-
+def require_admin(x_admin_key: str = Header(...)):
+    if not secrets.compare_digest(x_admin_key, ADMIN_SECRET):
+        raise HTTPException(status_code=403, detail="Forbidden")
 
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/sensor_data")
 
-router = APIRouter(prefix="/db", tags=["interview"])
+router = APIRouter(prefix="/db", dependencies=[Depends(require_admin)])
 
 db_pool = None
 

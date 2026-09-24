@@ -1,30 +1,32 @@
-services:
-  # timescaledb:
-  #   image: timescaledb/timescaledb:latest-pg17
-  #   container_name: timescaledb
-  #   ports:
-  #     - "5432:5432"
-  #   environment:
-  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-  #     - TIMESCALEDB_TELEMETRY=off
-  #   volumes:
-  #     - timescaledb-data:/var/lib/postgresql/data
+version: '3.8'
 
-  redis:
-    image: redis:latest
-    container_name: my-redis-container
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
+services:
+  # nginx:
+  #   image: nginx:stable
+  #   ports: ["80:80", "443:443"]     # the only published ports
+  #   depends_on: [frontend, backend]
+
+  # frontend:
+  #   build: ./frontend
+  #   expose: ["3000"]                # reachable by other containers, not the host/internet
+  #   environment:
+  #     API_BASE_URL: "http:${API_BASE}"
+
+  backend:
+    build: ./backend
+    expose: ["${FASTAPI_PORT}"]
+    depends_on: [db]
+
+  db:
+    image: timescale/timescaledb:latest-pg17
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - TIMESCALEDB_TELEMETRY=off
     volumes:
-      - redis-data:/data
-    command: redis-server --requirepass reyden --appendonly yes
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 2s
-      timeout: 3s
-      retries: 10
-      
+      - timescaledb_data:/var/lib/postgresql/data
+    restart: always
+
 volumes:
-  redis-data:
-    driver: local
+  timescaledb_data:
