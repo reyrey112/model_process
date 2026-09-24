@@ -1,7 +1,7 @@
 #!/bin/bash
 
 sudo apt update && sudo apt upgrade -y
-sudo apt install gnome-terminal
+sudo apt install gnome-terminal -y
 sudo snap install docker
 sudo apt install git -y
 
@@ -13,8 +13,8 @@ else
 fi
 
 
-sudo apt install software-properties-common
-sudo add-apt-repository -y ppa:deadsnakes/ppa
+sudo apt install software-properties-common -y
+sudo add-apt-repository -y ppa:deadsnakes/ppa -y
 sudo apt update
 sudo apt install python3.13 python3.13-venv python3.13-dev
 sudo apt install -y certbot python3-certbot-nginx
@@ -41,7 +41,7 @@ sudo apt update
 sudo apt install nginx
 
 set -a
-source /home/ubuntu/MLAPP/.env
+source /home/ubuntu/model_process/.env
 set +a
 
 export SSL_CERTIFICATE=/etc/letsencrypt/live/${SERVER_NAME}/fullchain.pem
