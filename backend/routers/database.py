@@ -1,5 +1,16 @@
 import os, sys, yaml
-from backend.models.requests import DBWriteRequest
+from dotenv import load_dotenv
+
+load_dotenv()
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+root_dir = os.path.abspath(os.path.join(current_dir, "../.."))
+
+if root_dir not in sys.path:
+    sys.path.append(root_dir)
+
+from models.requests import DBWriteRequest
+from models.reponses import DBWriteResponse
 import psycopg
 from typing import List
 from fastapi import APIRouter, HTTPException, status, Header,Depends, BackgroundTasks
@@ -24,7 +35,7 @@ router = APIRouter(prefix="/db", dependencies=[Depends(require_admin)])
 db_pool = None
 
 
-@router.post("/write", response_model=status.HTTP_201_CREATED)
+@router.post("/write", response_model=DBWriteResponse)
 async def write_to_db(request: DBWriteRequest):
 
     if not request.data_tuples:
