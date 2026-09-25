@@ -57,6 +57,9 @@ nginx -t && systemctl restart nginx
 # sudo aws ecr get-login-password --region us-east-2 | sudo docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-2.amazonaws.com
 
 # sudo docker-compose pull
+echo ${POSTGRES_USER}
+echo ${POSTGRES_PASSWORD}
+echo ${POSTGRES_DB}
 sudo docker container prune -f
 sudo docker image prune --force
 sudo docker-compose -f docker-compose.yaml up -d
