@@ -20,7 +20,7 @@ from contextlib import asynccontextmanager
 # 2. Modern Lifespan Handler (Replaces @app.on_event)
 
 DATABASE_URL=os.environ.get("DATABASE_URL")
-print(DATABASE_URL)
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: Initialize the pool
