@@ -2,7 +2,7 @@ import os
 import httpx, logging, time
 import boto3
 
-API_BASE = os.environ.get("API_BASE_URL", "http://localhost:8000")
+API_BASE = os.environ.get("API_BASE", "http://localhost:8000")
 
 # API_AUDIENCE = os.environ.get("API_AUDIENCE", "http://localhost:8000")
 # TIMEOUT = 120
