@@ -20,4 +20,5 @@ dependencies = [
     "scikit-learn>=1.9.0",
     "stable-baselines3[extra]>=2.9.0",
     "torch>=2.13.0",
+    "uvicorn>=0.54.0",
 ]
