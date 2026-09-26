@@ -24,13 +24,13 @@ load_dotenv()
 
 ADMIN_SECRET = os.environ.get("ADMIN_SECRET")
 
-# def require_admin(x_admin_key: str = Header(...)):
-#     if not secrets.compare_digest(x_admin_key, ADMIN_SECRET):
-#         raise HTTPException(status_code=403, detail="Forbidden")
+def require_admin(x_admin_key: str = Header(...)):
+    if not secrets.compare_digest(x_admin_key, ADMIN_SECRET):
+        raise HTTPException(status_code=403, detail="Forbidden")
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
-router = APIRouter(prefix="/db", dependencies=[Depends(require_admin)])
+router = APIRouter(prefix="/db",)
 
 db_pool = None
 
