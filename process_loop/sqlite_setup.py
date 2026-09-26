@@ -53,7 +53,7 @@ COLUMN_INDEXES: dict = config["column_config"]["column_indexes"]
 # internal thread safe queue
 data_queue = queue.Queue()
 
-headers = {"x-admin-key": f"{os.environ.get("ADMIN_SECRET")}"}
+headers = {"x-admin-key": os.environ.get("ADMIN_SECRET")}
 
 def init_local_db():
     conn = sqlite3.connect("process.db", check_same_thread=False)

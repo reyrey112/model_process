@@ -10,7 +10,7 @@ if root_dir not in sys.path:
     sys.path.append(root_dir)
 
 from fastapi import FastAPI
-from routers import database
+from backend.routers import database
 import asyncpg
 from contextlib import asynccontextmanager
 
@@ -23,13 +23,8 @@ DATABASE_URL=os.environ.get("DATABASE_URL")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Initialize the pool
-    database_url = DATABASE_URL
-    db_pool = await asyncpg.create_pool(database_url, min_size=5, max_size=20)
-
+    db_pool = await asyncpg.create_pool(DATABASE_URL, min_size=5, max_size=20)
     yield {"db_pool": db_pool}
-
-    # Shutdown: Clean closure
     await db_pool.close()
 
 
