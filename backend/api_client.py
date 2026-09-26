@@ -1,9 +1,16 @@
 import os
 import httpx, logging, time
 import boto3
+from dotenv import load_dotenv
 
-API_BASE = os.environ.get("API_BASE", "http://localhost:8000")
+load_dotenv()
 
+
+if os.environ.get("LOCAL") == "yes":
+    API_BASE = "http://localhost:8000"
+else:
+    API_BASE = os.environ.get("API_BASE")
+    
 # API_AUDIENCE = os.environ.get("API_AUDIENCE", "http://localhost:8000")
 # TIMEOUT = 120
 # _cache = {"token": None, "exp": 0.0}
