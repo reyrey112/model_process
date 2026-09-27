@@ -1,9 +1,5 @@
 services:
-  # frontend:
-  #   build: ./frontend
-  #   expose: ["3000"]                # reachable by other containers, not the host/internet
-  #   environment:
-  #     API_BASE_URL: "http:${API_BASE}"
+
 
   backend:
     build: ./backend
@@ -11,7 +7,7 @@ services:
     - "${FASTAPI_PORT}:8000"
     environment:
       ADMIN_SECRET: ${ADMIN_SECRET}
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT}/${POSTGRES_DB}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       POSTGRES_TABLE: ${POSTGRES_TABLE}    
     depends_on:
       db:

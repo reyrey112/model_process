@@ -6,8 +6,8 @@ from dotenv import load_dotenv,find_dotenv
 load_dotenv(find_dotenv())
 
 API_BASE = os.environ.get("API_BASE")
-if API_BASE is None:
-    API_BASE = "http://localhost:8000"    
+# API_BASE = "http://localhost:8000"
+    
     
 # API_AUDIENCE = os.environ.get("API_AUDIENCE", "http://localhost:8000")
 # TIMEOUT = 120
