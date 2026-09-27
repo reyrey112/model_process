@@ -47,7 +47,7 @@ EXIT_CODE=0
 sudo docker compose pull
 sudo docker container prune -f
 sudo docker image prune --force
-sudo docker compose -f "$HOME/model_process/local-compose.yaml" up -d --wait --wait-timeout 60 || {
+sudo docker compose -f "$HOME/model_process/bee-compose.yaml" up -d --wait --wait-timeout 60 || {
     echo "Containers failed to become healthy"
     exit 1
 }
