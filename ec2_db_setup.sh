@@ -5,8 +5,6 @@ sudo apt install gnome-terminal -y
 sudo snap install docker
 sudo apt install git -y
 sudo apt install nginx -y
-sudo systemctl start nginx
-sudo systemctl enable nginx
 
 
 if [ -d "/home/ubuntu/model_process" ]; then
