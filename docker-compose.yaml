@@ -1,9 +1,4 @@
 services:
-  nginx:
-    image: nginx:stable
-    ports: ["80:80", "443:443"]     # the only published ports
-    depends_on: [backend]
-
   # frontend:
   #   build: ./frontend
   #   expose: ["3000"]                # reachable by other containers, not the host/internet
