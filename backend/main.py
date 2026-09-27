@@ -1,16 +1,16 @@
 import os, sys
-from dotenv import load_dotenv
+from dotenv import load_dotenv,find_dotenv
 
-load_dotenv()
+load_dotenv(find_dotenv())
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.abspath(os.path.join(current_dir, "../.."))
 
-if root_dir not in sys.path:
-    sys.path.append(root_dir)
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
 
 from fastapi import FastAPI
-from backend.routers import database
+from routers import database
 import asyncpg
 from contextlib import asynccontextmanager
 

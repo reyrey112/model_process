@@ -1,9 +1,9 @@
 import os
 import httpx, logging, time
 import boto3
-from dotenv import load_dotenv
+from dotenv import load_dotenv,find_dotenv
 
-load_dotenv()
+load_dotenv(find_dotenv())
 
 
 if os.environ.get("LOCAL") == "yes":

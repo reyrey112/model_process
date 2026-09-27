@@ -4,6 +4,10 @@ sudo apt update && sudo apt upgrade -y
 sudo apt install gnome-terminal -y
 sudo snap install docker
 sudo apt install git -y
+sudo apt install nginx -y
+sudo systemctl start nginx
+sudo systemctl enable nginx
+
 
 if [ -d "/home/ubuntu/model_process" ]; then
     cd /home/ubuntu/model_process && git pull
@@ -37,8 +41,7 @@ region = us-east-2" > ~/.aws/config
 fi
 
 venv_model_process/bin/uv run download_from_ssm.py
-sudo apt update
-sudo apt install nginx
+
 
 set -a
 source /home/ubuntu/model_process/.env

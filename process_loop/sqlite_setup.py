@@ -12,7 +12,6 @@ import httpx
 
 
 
-
 current_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.abspath(os.path.join(current_dir, ".."))
 
@@ -75,14 +74,12 @@ def init_local_db():
 
 
 def log_data_local(conn, cur, action_state_target_dict: dict):
-    ts = time.time()
     all_columns = ["Timestamp"] + ALL_COLUMNS
 
     values_list = [action_state_target_dict[x] for x in all_columns]
 
     # use deque instead if large?
-    # move timestam from backj to front of list
-    values_list.insert(0, values_list.pop())
+
 
     value_names_sql = ",".join(f'"{col}" ' for col in all_columns)
     value_holders_sql = ",".join("?" for col in all_columns)
@@ -102,6 +99,7 @@ def log_data_local(conn, cur, action_state_target_dict: dict):
 
     data_dict = {all_columns[x]: values_list[x] for x in range(len(all_columns))}
 
+
     data_queue.put(data_dict)
 
 
@@ -115,47 +113,45 @@ def cloud_sync_worker():
     value_names_sql = ",".join(f'"{col}" ' for col in all_columns)
     value_holders_sql = ",".join("?" for col in all_columns)
 
+    while True:
+        batch = []
 
-    batch = []
+        # pull items out of queue, block if empty
+        item = data_queue.get()
+        batch.append(item)
 
-    # pull items out of queue, block if empty
-    item = data_queue.get()
-    batch.append(item)
+        while len(batch) < 1000:
+            try:
+                batch.append(data_queue.get_nowait())
+            except queue.Empty:
+                break
 
-    while len(batch) < 1000:
-        try:
-            batch.append(data_queue.get_nowait())
-        except queue.Empty:
-            break
+        # convert batch to list of tuples for executemany
 
-    # convert batch to list of tuples for executemany
+        data_dicts = []
 
-    data_tuples = []
+        for i in batch:
+            data_dicts.append(i)
 
-    for i in batch:
-        data = tuple(i[x] for x in all_columns)
-        data_tuples.append(data)
+        success = False
+        sec = 2
 
-    success = False
-    sec = 2
-    print(f"inputting {len(data_tuples)} into db")
+        while not success:
+            try:
+                print(f"inputting {len(data_dicts)} into db")
+                response = api.db_write(data_tuples=data_dicts, all_columns=all_columns, headers=headers)
+                if response["status"] == "success":
+                    print(f"CLOUD: Successfully inserted {response["inserted_records"]} into db")
 
-    while not success:
-        try:
-            print(f"inputting {len(data_tuples)} into db")
-            response = api.db_write(data_tuples=data_tuples, all_columns=all_columns, headers=headers)
-            if response["status"] == "success":
-                print(f"Successfully inserted {response["inserted_records"]} into db")
+                    for _ in range(len(batch)):
+                        data_queue.task_done()
 
-                for _ in range(len(batch)):
-                    data_queue.task_done()
+                    success = True
 
-                success = True
-
-        except Exception as e:
-            print(f"Network error: {e}. Retrying in {sec} seconds")
-            time.sleep(sec)
-            sec *= 2
+            except Exception as e:
+                print(f"CLOUD: Network error: {e}. Retrying in {sec} seconds")
+                time.sleep(sec)
+                sec = min(sec * 2, 60)
 
 def main():
     r = redis.Redis(
