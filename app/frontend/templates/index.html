@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Todo list</h1>
+  <ul id="item-list">
+    {% for item in items %}
+      <li>{{ item }}</li>
+    {% endfor %}
+  </ul>
+
+  <form hx-post="/items" hx-target="#item-list" hx-swap="beforeend">
+    <input type="text" name="name" placeholder="New item">
+    <button type="submit">Add</button>
+  </form>
+{% endblock %}

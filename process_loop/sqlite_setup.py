@@ -20,7 +20,7 @@ if root_dir not in sys.path:
 
 with open("config.yaml", "r") as file:
     config = yaml.safe_load(file)
-from backend import api_client as api
+from app.backend import api_client as api
 from util.yaml_check import yaml_key_check
 load_dotenv()
 HOSTNAME = os.environ.get("HOSTNAME", "localhost")

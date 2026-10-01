@@ -9,15 +9,15 @@ root_dir = os.path.abspath(os.path.join(current_dir, "../.."))
 if root_dir not in sys.path:
     sys.path.append(root_dir)
 
-from models.requests import DBWriteRequest, ProcessDataRow
-from models.reponses import DBWriteResponse
+from app.backend.models.requests import DBWriteRequest, ProcessDataRow
+from app.backend.models.reponses import DBWriteResponse
 import psycopg
 from typing import List
 from fastapi import APIRouter, HTTPException, status, Header,Depends, BackgroundTasks
 from pydantic import BaseModel, Field
 import asyncpg
 from dotenv import load_dotenv, find_dotenv
-from dependencies import get_db_pool
+from app.backend.dependencies import get_db_pool
 import secrets
 from datetime import datetime
 import logging
