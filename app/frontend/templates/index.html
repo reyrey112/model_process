@@ -1,14 +1,50 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1>Todo list</h1>
-  <ul id="item-list">
-    {% for item in items %}
-      <li>{{ item }}</li>
-    {% endfor %}
-  </ul>
+<script>
+  window.ALL_PARAMETERS = {{ parameters | tojson }};
+</script>
+<div class="dashboard">
+  <h1>Process Dashboard</h1>
 
-  <form hx-post="/items" hx-target="#item-list" hx-swap="beforeend">
-    <input type="text" name="name" placeholder="New item">
-    <button type="submit">Add</button>
-  </form>
+  <section class="controls">
+    <div class="preset-buttons" id="preset-buttons">
+      {% for preset in presets %}
+        <button type="button" class="preset-btn {% if preset == default_preset %}active{% endif %}"
+                data-preset="{{ preset }}">{{ preset }}</button>
+      {% endfor %}
+    </div>
+
+    <div class="custom-range">
+      <label for="start-input">Start</label>
+      <input type="datetime-local" id="start-input" name="start">
+
+      <label for="end-input">End</label>
+      <input type="datetime-local" id="end-input" name="end">
+
+      <button type="button" id="apply-range-btn">Apply</button>
+    </div>
+  </section>
+
+  <section class="parameters">
+    <h2>Parameters</h2>
+    <div class="parameter-checkboxes" id="parameter-checkboxes">
+      {% for param in parameters %}
+        <label class="param-checkbox">
+          <input type="checkbox" name="columns" value="{{ param }}"
+            {% if param == default_parameter %}checked{% endif %}>
+          {{ param }}
+        </label>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="chart-section">
+    <div id="chart-status"></div>
+    <div id="chart-container">
+      <canvas id="chart"></canvas>
+    </div>
+  </section>
+</div>
+
+<script src="/static/app.js" defer></script>
 {% endblock %}

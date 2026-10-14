@@ -12,7 +12,7 @@ import redis
 import os, sys
 from datetime import datetime
 import time
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -26,6 +26,7 @@ with open("config.yaml", "r") as file:
 
 from util.yaml_check import yaml_key_check
 
+load_dotenv(find_dotenv())
 
 HOSTNAME = os.environ.get("HOSTNAME", "localhost")
 REDIS_PORT = os.environ.get("REDIS_PORT")
@@ -112,7 +113,7 @@ def main ():
         )
 
         #tiny delay between readings
-        time.sleep(0.1)
+        time.sleep(1)
         try:
             new_action = r.xread(streams={ACTION_STREAM_NAME: "$"}, count=1)
             action_t_1_dict = new_action[0][1][0][1]

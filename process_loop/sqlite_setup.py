@@ -138,7 +138,6 @@ def cloud_sync_worker():
 
         while not success:
             try:
-                print(f"inputting {len(data_dicts)} into db")
                 response = api.db_write(data_tuples=data_dicts, all_columns=all_columns, headers=headers)
                 if response["status"] == "success":
                     print(f"CLOUD: Successfully inserted {response["inserted_records"]} into db")

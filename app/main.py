@@ -1,3 +1,5 @@
+# main.py
+
 import os, sys
 from dotenv import load_dotenv,find_dotenv
 
@@ -13,12 +15,12 @@ if root_dir not in sys.path:
 # if frontend_dir not in sys.path:
 #     sys.path.append(frontend_dir)    
 print(current_dir)
-from app.backend.routers import database
+from app.backend.templating import templates  # replaces local Jinja2Templates(...)
+from app.backend.routers import database, dashboard, pages
 import asyncpg
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, Form
-from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
 
@@ -34,17 +36,17 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Process Sim API", version="0.0.1", lifespan=lifespan)
-app.include_router(database.router)
-app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
-templates = Jinja2Templates(directory="frontend/templates")
 
-items = ["Buy milk", "Walk dog"]
+app.include_router(database.router)
+app.include_router(dashboard.router)
+app.include_router(pages.router)
+app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
+
+
 
 
 @app.get("/health")
 def health():
     return {"status": "ok"}
 
-@app.get("/")
-def home(request: Request):
-    return templates.TemplateResponse(request, "index.html", {"items": items})
+

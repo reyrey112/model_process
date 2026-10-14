@@ -1,3 +1,5 @@
+# database.py
+
 import os, sys, yaml
 from dotenv import load_dotenv
 
@@ -13,7 +15,7 @@ from app.backend.models.requests import DBWriteRequest, ProcessDataRow
 from app.backend.models.reponses import DBWriteResponse
 import psycopg
 from typing import List
-from fastapi import APIRouter, HTTPException, status, Header,Depends, BackgroundTasks
+from fastapi import Request, APIRouter, HTTPException, status, Header,Depends, BackgroundTasks
 from pydantic import BaseModel, Field
 import asyncpg
 from dotenv import load_dotenv, find_dotenv
@@ -78,3 +80,4 @@ async def write_to_db(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Database insertion failed: {str(e)}",
         )
+

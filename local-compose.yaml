@@ -18,7 +18,7 @@ services:
   db:
     image: timescale/timescaledb:latest-pg17
     ports: 
-    - "${POSTGRES_PORT}:5432"
+    - "5432:5432"
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}

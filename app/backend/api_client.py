@@ -1,3 +1,5 @@
+# api_client.py
+
 import os
 import httpx, logging, time
 import boto3
@@ -5,8 +7,8 @@ from dotenv import load_dotenv,find_dotenv
 
 load_dotenv(find_dotenv())
 
-API_BASE = os.environ.get("API_BASE")
-# API_BASE = "http://localhost:8000"
+# API_BASE = os.environ.get("API_BASE")
+API_BASE = "http://localhost:8000"
     
     
 # API_AUDIENCE = os.environ.get("API_AUDIENCE", "http://localhost:8000")
