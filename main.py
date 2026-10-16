@@ -88,7 +88,8 @@ RL_MODEL_ENV_CLASS = ProcessSimEnv
 RL_MODEL_POLICY = "MultiInputPolicy"
 
 
-def main(pipeline=2):
+
+def main(pipeline=0):
 
     # Databricks-hosted MLflow: tracking_uri="databricks" picks up auth from
     # the Databricks CLI config / DATABRICKS_HOST + DATABRICKS_TOKEN env vars.
@@ -261,7 +262,7 @@ def main(pipeline=2):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="")
-    parser.add_argument("--pipeline", type=int, default=2, help="which pipeline to run")
+    parser.add_argument("--pipeline", type=int, default=0, help="which pipeline to run")
 
     args = parser.parse_args()
 

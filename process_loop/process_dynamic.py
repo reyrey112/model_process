@@ -4,6 +4,7 @@ run a dynamic model in an onnx runtime that inputs the action(t)
 from the RL model and outputs state(t+1)
 
 """
+from model_manager import ModelManager, mlflow_alias_getter
 
 import onnxruntime as ort
 import numpy as np
@@ -65,8 +66,13 @@ def quality_distance(state_target: np.ndarray) -> np.float32:
     return np.float32(temp_diff + pressure_diff + yield_diff)
 
 def main ():
-    session = ort.InferenceSession(f"{root_dir}/{DYNAMIC_MODEL_PATH}")
-
+    manager = ModelManager(
+        model_name="model_process.model_metrics.DYNAMIC_MODEL",
+        model_dir=f"{root_dir}/models/pytorch_dynamic_models",
+        get_target_version=mlflow_alias_getter("model_process.model_metrics.DYNAMIC_MODEL"),
+        sample_feed={"input_name": np.zeros((1, 1, len(ALL_COLUMNS)), dtype=np.float32)},
+        fallback_path=f"{root_dir}/{DYNAMIC_MODEL_PATH}",   # used if nothing is published yet
+    )
     # Check input/output names and shapes (useful for sanity-checking)
     # for inp in session.get_inputs():
     #     print(inp.name, inp.shape, inp.type)
@@ -84,6 +90,7 @@ def main ():
     )
 
     count = 0
+    session = manager.current()
     while 0 < 1:
 
         # wait for new row in redis
@@ -115,8 +122,10 @@ def main ():
         #tiny delay between readings
         time.sleep(1)
         try:
-            new_action = r.xread(streams={ACTION_STREAM_NAME: "$"}, count=1)
-            action_t_1_dict = new_action[0][1][0][1]
+            latest = r.xrevrange(ACTION_STREAM_NAME, count=1)
+            action_t_1_dict = latest[0][1] if latest else {
+                c: float(action_state_target_t_dict[c]) for c in ACTION_COLUMN
+            }
 
         except Exception as e:
             action_t_1_dict = {
@@ -141,6 +150,7 @@ def main ():
 
         action_state_target_t_1_dict = action_t_1_dict | state_t_1_dict | target_dict
 
+        action_state_target_t_1_dict["model_version"] = manager.version
         action_state_target_t_1_dict["quality"] = float(quality_t_array[0][0])
         action_state_target_t_1_dict["Timestamp"] = f"{datetime.now()}"
 

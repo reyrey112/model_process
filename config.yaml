@@ -54,7 +54,9 @@ column_config:
   other_columns:
   - quality
   - Timestamp
-onnx_dynamic_model_path: models/pytorch_dynamic_models/VAE_industrial
-onnx_RL_model_path: models/RL_ONNX/ONNX_td3.onnx
+onnx_dynamic_model_path: models/pytorch_dynamic_models/model_process.model_metrics.DYNAMIC_MODEL
+onnx_RL_model_path: models/RL_models/RL_MODEL
 dynamics_model_run_id: a9c6daa065154318a42fdfe7c3ac99f9
 dynamic_loss: 100.78750820031823
+RL_model_run_id: 032edb60c96043729ec069cf0d57bb95
+RL_reward: 0.5790956592427513

@@ -15,7 +15,7 @@ from datetime import datetime
 import os, sys
 import time
 from dotenv import load_dotenv
-
+from model_manager import ModelManager, redis_version_getter, mlflow_alias_getter
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.abspath(os.path.join(current_dir, ".."))
@@ -84,7 +84,10 @@ def main():
     # )
 
     r = redis.Redis(
-        host=HOSTNAME, port=int(REDIS_PORT), decode_responses=True, password=REDIS_PASSWORD
+        host=HOSTNAME,
+        port=int(REDIS_PORT),
+        decode_responses=True,
+        password=REDIS_PASSWORD,
     )
     # r = redis.Redis(
     #     host="my-redis.cloud.redislabs.com", port=6379,
@@ -95,8 +98,16 @@ def main():
     #     ssl_keyfile="./redis_user_private.key",
     #     ssl_ca_certs="./redis_ca.pem",
     # )
-    session = ort.InferenceSession(f"{root_dir}/{ONNX_RL_MODEL_PATH}")
-
+    manager = ModelManager(
+        model_name="model_process.model.metrics.RL_MODEL",
+        model_dir=f"{root_dir}/models/RL_models",
+        get_target_version=mlflow_alias_getter("model_process.model_metrics.RL_MODEL"),
+        sample_feed={
+            "agent": np.zeros((1, len(STATE_TARGET_COLUMNS)), np.float32),
+            "target": np.zeros((1, 1), np.float32),
+        },
+        fallback_path=f"{root_dir}/{ONNX_RL_MODEL_PATH}",
+    )
     # # Check input/output names and shapes (useful for sanity-checking)
     # for inp in session.get_inputs():
     #     print(inp.name, inp.shape, inp.type)
@@ -146,7 +157,7 @@ def main():
         ).reshape(1, 1)
         state_target_t_array = np.array([state_target_t_array], dtype=np.float32)
 
-        action_t = session.run(
+        action_t = manager.current().run(
             ["action"], {"agent": state_target_t_array, "target": quality_t_array}
         )[0][0]
 
