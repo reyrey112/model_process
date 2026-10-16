@@ -6,7 +6,9 @@ from src.model_training.train_dynamic import train_dynamic
 from src.model_training.training_helpers.onnx_export import dynamic_model_export_to_onnx
 import yaml
 from util.yaml_check import yaml_add_or_update
-from util.mlflow_helpers import log_code_version_tags
+from util.mlflow_helpers import dynamic_log_code_version_tags
+from datetime import datetime
+from util.mlflow_helpers import set_seed
 
 with open("config.yaml", "r") as file:
     config = yaml.safe_load(file)
@@ -16,6 +18,11 @@ try:
 except:
     best_loss = None
 
+def make_run_name(latent_dim, learning_rate, sequences, **kwargs) -> str:
+    return (
+        f"vae_ld{latent_dim}_lr{learning_rate}_seq{sequences}_"
+        f"{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    )
 
 class DynamicModule(ModuleClass):
     def __init__(self, model_class, registered_model_name, model_directory):
@@ -25,7 +32,8 @@ class DynamicModule(ModuleClass):
 
     def run(
         self,
-        run_name,
+        mlflow_experiment,
+        seed,
         training_params: dict,
         model_params: dict,
         reproducibility_enviroment_tags: dict,
@@ -35,8 +43,15 @@ class DynamicModule(ModuleClass):
         df: pd.DataFrame,
     ):
 
+        set_seed(seed)
+
+        mlflow.set_experiment(mlflow_experiment)
+
+        run_name = make_run_name(latent_dim=model_params["latent_dim"], **training_params)
+        model = self.model_class(**model_params)
+        
         with mlflow.start_run(run_name=run_name, log_system_metrics=True):
-            log_code_version_tags(
+            dynamic_log_code_version_tags(
                 loss_function=loss_function, model_class=self.model_class
             )
 
@@ -67,7 +82,7 @@ class DynamicModule(ModuleClass):
                     pass
                 mlflow.log_artifact("config.yaml")
 
-                model = self.model_class(**model_params)
+                
 
                 trained_model, mean_final_val_loss = train_dynamic(
                     model=model,
@@ -77,17 +92,14 @@ class DynamicModule(ModuleClass):
                     **training_params,
                 )
 
-                dynamic_model_export_to_onnx(
+                active_run = dynamic_model_export_to_onnx(
                     trained_model,
                     model_directory=self.model_directory,
                     registered_model_name=self.registered_model_name,
                 )
 
-                if best_loss is None or best_loss > mean_final_val_loss:
-                    yaml_add_or_update(key="dynamic_loss", value=mean_final_val_loss)
-                    result = subprocess.run(
-                        ["uv", "run", "train_rl.py"], capture_output=True, text=True
-                    )
+                return active_run, mean_final_val_loss
+
 
             except Exception as e:
                 # tag while the run is still active -- mlflow marks it FAILED
