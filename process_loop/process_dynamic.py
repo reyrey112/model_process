@@ -122,7 +122,7 @@ def main ():
         )
 
         #tiny delay between readings
-        time.sleep(1)
+        time.sleep(0.1)
         try:
             latest = r.xrevrange(ACTION_STREAM_NAME, count=1)
             action_t_1_dict = latest[0][1] if latest else {

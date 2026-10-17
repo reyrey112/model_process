@@ -122,10 +122,14 @@ def cloud_sync_worker():
         batch = []
 
         # pull items out of queue, block if empty
-        item = data_queue.get()
-        batch.append(item)
+
 
         while len(batch) < 1000:
+            item = data_queue.get()
+            batch.append(item)
+            if len(batch) < 10:
+                continue
+
             try:
                 batch.append(data_queue.get_nowait())
             except queue.Empty:

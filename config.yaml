@@ -54,9 +54,9 @@ column_config:
   other_columns:
   - quality
   - Timestamp
-onnx_dynamic_model_path: models/pytorch_dynamic_models/model_process.model_metrics.DYNAMIC_MODEL
-onnx_RL_model_path: models/RL_models/RL_MODEL
+onnx_dynamic_model_path: models/pytorch_dynamic_models/model_process.model_metrics.dynamic_model
+onnx_RL_model_path: models/RL_models/rl_model
 dynamics_model_run_id: f980c295eda44201baf3bcfcd83fee8c
 dynamic_loss: 100.78750820031823
-RL_model_run_id: e2e6fd67630240f19cd2e4ba202a3e09
-RL_reward: 0.6021803909690943
+RL_model_run_id: 7da35bb5649e4b18810644bb7892abe8
+RL_reward: 0.6011371500816687
