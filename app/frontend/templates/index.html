@@ -1,50 +1,281 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} {% block title %}Process Dashboard | Insight 4 Data{%
+endblock %} {% block content %}
 <script>
   window.ALL_PARAMETERS = {{ parameters | tojson }};
+  window.DEFAULT_PARAMETER = {{ default_parameter | tojson }};
 </script>
-<div class="dashboard">
-  <h1>Process Dashboard</h1>
+<div class="shell">
+  <aside class="sidebar" aria-label="Primary navigation">
+    <div class="sidebar-top">
+      <a class="logo" href="/" aria-label="Insight 4 Data home"
+        >Insight 4 Data</a
+      >
+    </div>
 
-  <section class="controls">
-    <div class="preset-buttons" id="preset-buttons">
-      {% for preset in presets %}
-        <button type="button" class="preset-btn {% if preset == default_preset %}active{% endif %}"
-                data-preset="{{ preset }}">{{ preset }}</button>
+    <nav class="primary-nav" aria-label="Main menu">
+      <a class="nav-link" href="/" aria-current="page" data-panel="none">
+        <span class="nav-icon" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+        </span>
+        <span class="nav-label">Home</span>
+      </a>
+      {% for section, icon in [("Models", "models"), ("Pipelines", "pipelines"),
+      ("Graphs", "graphs"), ("Files", "files"), ("Databases", "databases")] %}
+      <a
+        class="nav-link"
+        href="#"
+        aria-expanded="false"
+        data-panel="{{ icon }}"
+      >
+        <span class="nav-icon" aria-hidden="true">
+          {% if icon == "models" %}
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="21 16 21 8 12 3 3 8 3 16 12 21 21 16" />
+            <line x1="3" y1="8" x2="12" y2="13" />
+            <line x1="12" y1="21" x2="12" y2="13" />
+            <line x1="21" y1="8" x2="12" y2="13" />
+          </svg>
+          {% elif icon == "pipelines" %}
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="2" y="7" width="5" height="5" rx="1" />
+            <rect x="17" y="7" width="5" height="5" rx="1" />
+            <rect x="9.5" y="14" width="5" height="5" rx="1" />
+            <line x1="7" y1="9.5" x2="17" y2="9.5" />
+            <line x1="12" y1="9.5" x2="12" y2="14" />
+          </svg>
+          {% elif icon == "graphs" %}
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
+          </svg>
+          {% elif icon == "files" %}
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+            />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+          {% else %}
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <ellipse cx="12" cy="5" rx="9" ry="3" />
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+          </svg>
+          {% endif %}
+        </span>
+        <span class="nav-label">{{ section }}</span>
+        <span class="nav-chevron" aria-hidden="true"
+          ><svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="9 18 15 12 9 6" /></svg
+        ></span>
+      </a>
+      {% endfor %}
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="avatar-row">
+        <div class="avatar" aria-hidden="true">I</div>
+        <span class="avatar-name">Insight 4 Data</span>
+      </div>
+    </div>
+  </aside>
+
+  <nav class="subnav" id="subnav" aria-label="Section menu" aria-hidden="true">
+    <div class="subnav-close">
+      <button
+        class="subnav-close-btn"
+        id="subnav-close-btn"
+        type="button"
+        aria-label="Close sub-menu"
+        title="Close sub-menu"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+      </button>
+    </div>
+    {% for panel, links in { "models": [("New", "#"), ("Local", "#"),
+    ("Registered", "#"), ("Deployed", "#")], "pipelines": [("Register", "#"),
+    ("Deploy", "#"), ("Batch Inference", "#")], "graphs": [("Process time
+    series", "#chart-section"), ("Parameter selection", "#parameters")],
+    "files": [("New", "#"), ("List", "#")], "databases": [("New", "#"), ("List",
+    "#")] }.items() %}
+    <div
+      class="subnav-inner"
+      id="panel-{{ panel }}"
+      data-panel="{{ panel }}"
+      role="group"
+      aria-labelledby="heading-{{ panel }}"
+      hidden
+    >
+      <h2 class="subnav-heading" id="heading-{{ panel }}">{{ panel }}</h2>
+      {% for label, href in links %}
+      <a class="subnav-link" href="{{ href }}">
+        <span class="subnav-dot" aria-hidden="true"></span>{{ label }}
+      </a>
       {% endfor %}
     </div>
+    {% endfor %}
+  </nav>
 
-    <div class="custom-range">
-      <label for="start-input">Start</label>
-      <input type="datetime-local" id="start-input" name="start">
+  <div class="main-wrapper">
+    <main class="stage">
+      <div class="stage-inner">
+        <div class="dashboard">
+          <header class="page-heading">
+            <div>
+              <p class="eyebrow">PROCESS MONITORING</p>
+              <h1>Process Dashboard</h1>
+              <p class="page-description">
+                Explore live and historical process measurements.
+              </p>
+            </div>
+          </header>
 
-      <label for="end-input">End</label>
-      <input type="datetime-local" id="end-input" name="end">
+          <section class="control-section" aria-labelledby="range-heading">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">TIME WINDOW</p>
+                <h2 id="range-heading">Select a range</h2>
+              </div>
+              <div
+                class="preset-buttons"
+                id="preset-buttons"
+                role="group"
+                aria-label="Preset time range"
+              >
+                {% for preset in presets %}
+                <button
+                  type="button"
+                  class="preset-btn {% if preset == default_preset %}active{% endif %}"
+                  data-preset="{{ preset }}"
+                  aria-pressed="{% if preset == default_preset %}true{% else %}false{% endif %}"
+                >
+                  {{ preset }}
+                </button>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="custom-range">
+              <label class="field-label" for="start-input">Start</label>
+              <input type="datetime-local" id="start-input" name="start" />
+              <label class="field-label" for="end-input">End</label>
+              <input type="datetime-local" id="end-input" name="end" />
+              <button type="button" id="apply-range-btn" class="action-btn">
+                Apply range
+              </button>
+            </div>
+          </section>
 
-      <button type="button" id="apply-range-btn">Apply</button>
-    </div>
-  </section>
+          <section
+            class="control-section parameters"
+            id="parameters"
+            aria-labelledby="parameters-heading"
+          >
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">SERIES</p>
+                <h2 id="parameters-heading">Parameters</h2>
+              </div>
+              <span class="section-note">Choose measurements to compare</span>
+            </div>
+            <div class="parameter-checkboxes" id="parameter-checkboxes">
+              {% for param in parameters %}
+              <label class="param-checkbox">
+                <input type="checkbox" name="columns" value="{{ param }}" />
+                <span>{{ param }}</span>
+              </label>
+              {% endfor %}
+            </div>
+          </section>
 
-  <section class="parameters">
-    <h2>Parameters</h2>
-    <div class="parameter-checkboxes" id="parameter-checkboxes">
-      {% for param in parameters %}
-        <label class="param-checkbox">
-          <input type="checkbox" name="columns" value="{{ param }}"
-            {% if param == default_parameter %}checked{% endif %}>
-          {{ param }}
-        </label>
-      {% endfor %}
-    </div>
-  </section>
-
-  <section class="chart-section">
-    <div id="chart-status"></div>
-    <div id="chart-container">
-      <canvas id="chart"></canvas>
-    </div>
-  </section>
+          <section
+            class="chart-section"
+            id="chart-section"
+            aria-labelledby="chart-heading"
+          >
+            <div class="chart-header">
+              <div>
+                <p class="eyebrow">TREND VIEW</p>
+                <h2 id="chart-heading">Measurements over time</h2>
+              </div>
+              <div id="chart-status" role="status" aria-live="polite">
+                Loading…
+              </div>
+            </div>
+            <div id="chart-container">
+              <canvas
+                id="chart"
+                aria-label="Selected process measurements over time"
+                role="img"
+              ></canvas>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
 </div>
-
 <script src="/static/app.js" defer></script>
 {% endblock %}
