@@ -10,6 +10,11 @@ import redis
 import os, sys
 import httpx
 
+import mlflow
+mlflow.set_tracking_uri("databricks")
+mlflow.set_registry_uri("databricks-uc")
+
+from mlflow.tracking import MlflowClient; MlflowClient().search_experiments()
 
 
 current_dir = os.path.dirname(os.path.abspath(__file__))

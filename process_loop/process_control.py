@@ -70,7 +70,9 @@ def quality_distance(state_target: np.ndarray) -> np.float32:
     )
     return np.float32(temp_diff + pressure_diff + yield_diff)
 
-
+import mlflow
+mlflow.set_tracking_uri("databricks")
+mlflow.set_registry_uri("databricks-uc")
 def main():
 
     # Client side caching using fast API for same conneciton? might not even be as fast

@@ -64,7 +64,9 @@ def quality_distance(state_target: np.ndarray) -> np.float32:
     )
     yield_diff = abs(state_target[COLUMN_INDEXES["state_yield_pct"]] - 1)
     return np.float32(temp_diff + pressure_diff + yield_diff)
-
+import mlflow
+mlflow.set_tracking_uri("databricks")
+mlflow.set_registry_uri("databricks-uc")
 def main ():
     manager = ModelManager(
         model_name="model_process.model_metrics.DYNAMIC_MODEL",
