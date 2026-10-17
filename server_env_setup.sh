@@ -15,10 +15,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="${SCRIPT_DIR}/.env"
 
 # Keys that must be present
-REQUIRED_KEYS=(API_KEY DB_URL SECRET)
+REQUIRED_KEYS=(DATABRICKS_HOST DATABRICKS_TOKEN)
 
 # Keys whose input should be visible while typing (everything else is hidden)
-VISIBLE_KEYS=(DB_URL)
+VISIBLE_KEYS=()
 
 # --- Helpers ----------------------------------------------------------------
 
