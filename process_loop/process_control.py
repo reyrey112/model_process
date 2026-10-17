@@ -99,14 +99,14 @@ def main():
     #     ssl_ca_certs="./redis_ca.pem",
     # )
     manager = ModelManager(
-        model_name="model_process.model.metrics.RL_MODEL",
+        model_name="model_process.model_metrics.rl_model",
         model_dir=f"{root_dir}/models/RL_models",
-        get_target_version=mlflow_alias_getter("model_process.model_metrics.RL_MODEL"),
+        get_target_version=mlflow_alias_getter("model_process.model_metrics.rl_model"),
         sample_feed={
             "agent": np.zeros((1, len(STATE_TARGET_COLUMNS)), np.float32),
             "target": np.zeros((1, 1), np.float32),
         },
-        fallback_path=f"{root_dir}/{ONNX_RL_MODEL_PATH}",
+        fallback_path=f"{root_dir}/{ONNX_RL_MODEL_PATH}.onnx",
     )
     # # Check input/output names and shapes (useful for sanity-checking)
     # for inp in session.get_inputs():

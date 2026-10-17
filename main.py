@@ -43,7 +43,7 @@ STRIDE = 25
 QUALITY_WEIGHT = 0.25
 DYNAMIC_SEED = 42
 
-DYNAMIC_MODEL_NAME = "DYNAMIC_MODEL"
+DYNAMIC_MODEL_NAME = "dynamic_model"
 DYNAMIC_MLFLOW_EXPERIMENT = "/Users/reydencdavies@gmail.com/dynamic_model"
 DYNAMIC_REGISTERED_MODEL_NAME = f"model_process.model_metrics.{DYNAMIC_MODEL_NAME}"
 DYNAMIC_MODEL_DIRECTORY = Path("./models/pytorch_dynamic_models")
@@ -65,7 +65,7 @@ from model_classes.RL.RL_class import (
 
 MODELS_FOLDER = "models"
 
-RL_MODEL_NAME = "RL_MODEL"
+RL_MODEL_NAME = "rl_model"
 RL_MODEL_FOLDER = f"{MODELS_FOLDER}/RL_models"
 
 RAW_MODEL_NAME = f"raw_{RL_MODEL_NAME}"
@@ -167,29 +167,29 @@ def main(pipeline=0):
             df=df,
         )
 
-        try:
-            best_loss = config["dynamic_loss"]
-        except:
-            best_loss = None
+        # try:
+        #     best_loss = config["dynamic_loss"]
+        # except:
+        #     best_loss = None
 
-        if best_loss is None or best_loss > loss:
+        # if best_loss is None or best_loss > loss:
 
-            run_id = active_run.info.run_id
+        run_id = active_run.info.run_id
 
-            yaml_add_or_update(key="dynamics_model_run_id", value=run_id)
-            yaml_add_or_update(key="dynamic_loss", value=loss)
+        yaml_add_or_update(key="dynamics_model_run_id", value=run_id)
+        yaml_add_or_update(key="dynamic_loss", value=loss)
 
-            matches = [
-                mv
-                for mv in client.search_model_versions(
-                    f"name='model_process.model_metrics.{DYNAMIC_MODEL_NAME}'"
-                )
-                if mv.run_id == run_id
-            ]
-            version = max(int(mv.version) for mv in matches)
-            print("setting_champion")
-            client.set_registered_model_alias(f"model_process.model_metrics.{DYNAMIC_MODEL_NAME}", "champion", version)
-            print("champion set")
+        matches = [
+            mv
+            for mv in client.search_model_versions(
+                f"name='model_process.model_metrics.{DYNAMIC_MODEL_NAME}'"
+            )
+            if mv.run_id == run_id
+        ]
+        version = max(int(mv.version) for mv in matches)
+        print("setting_champion")
+        client.set_registered_model_alias(f"model_process.model_metrics.{DYNAMIC_MODEL_NAME}", "champion", version)
+        print("champion set")
 
     if pipeline in [0, 2]:
 
@@ -235,29 +235,29 @@ def main(pipeline=0):
             quality_distance=quality_distance,
         )
 
-        try:
-            best_reward = config["RL_reward"]
-        except:
-            best_reward = None
+        # try:
+        #     best_reward = config["RL_reward"]
+        # except:
+        #     best_reward = None
 
-        if best_reward is None or best_reward > reward:
+        # if best_reward is None or best_reward > reward:
 
-            run_id = active_run.info.run_id
+        run_id = active_run.info.run_id
 
-            yaml_add_or_update(key="RL_model_run_id", value=run_id)
-            yaml_add_or_update(key="RL_reward", value=reward)
+        yaml_add_or_update(key="RL_model_run_id", value=run_id)
+        yaml_add_or_update(key="RL_reward", value=reward)
 
-            matches = [
-                mv
-                for mv in client.search_model_versions(
-                    f"name='model_process.model_metrics.{RL_MODEL_NAME}'"
-                )
-                if mv.run_id == run_id
-            ]
-            version = max(int(mv.version) for mv in matches)
-            print("setting champion")
-            client.set_registered_model_alias(f"model_process.model_metrics.{RL_MODEL_NAME}", "champion", version)
-            print("champion set")
+        matches = [
+            mv
+            for mv in client.search_model_versions(
+                f"name='model_process.model_metrics.{RL_MODEL_NAME}'"
+            )
+            if mv.run_id == run_id
+        ]
+        version = max(int(mv.version) for mv in matches)
+        print("setting champion")
+        client.set_registered_model_alias(f"model_process.model_metrics.{RL_MODEL_NAME}", "champion", version)
+        print("champion set")
 
 
 if __name__ == "__main__":

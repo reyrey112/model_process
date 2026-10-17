@@ -41,9 +41,7 @@ sudo apt update && sudo apt install -y --no-install-recommends 'build-essential'
 # "${venv}"/bin/uv pip install -r requirements.txt
 
 # python3.13 pip install uv
-set -a
-source "$HOME/model_process/.env"
-set +a
+
 
 uv sync
 

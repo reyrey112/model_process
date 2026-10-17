@@ -26,7 +26,7 @@ with open("config.yaml", "r") as file:
     config = yaml.safe_load(file)
 
 RAW_CSV_NAME = "chemical_process_timeseries.csv"
-CLEAN_CSV_PATH = f"csvs/clean/clean_{RAW_CSV_NAME}"
+CLEAN_CSV_PATH = f"csvs/clean/{RAW_CSV_NAME}"
 
 HOSTNAME = os.environ.get("HOSTNAME", "localhost")
 REDIS_PORT = os.environ.get("REDIS_PORT")

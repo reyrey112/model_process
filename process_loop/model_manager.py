@@ -73,8 +73,9 @@ def fetch_onnx(model_name, version, model_dir):
         tmp_dir = final_dir + ".tmp"
         shutil.rmtree(tmp_dir, ignore_errors=True)
         os.makedirs(tmp_dir)
+        artifact_uri=f"models:/{model_name}/{version}"        
         mlflow.artifacts.download_artifacts(
-            artifact_uri=f"models:/{model_name}/{version}", dst_path=tmp_dir
+            artifact_uri=artifact_uri, dst_path=tmp_dir
         )
         os.rename(tmp_dir, final_dir)  # a version dir is either complete or absent
     paths = glob.glob(os.path.join(final_dir, "**", "*.onnx"), recursive=True)
@@ -122,7 +123,7 @@ class ModelManager:
         get_target_version,
         sample_feed,
         fallback_path=None,
-        poll_interval=10,
+        poll_interval=60,
     ):
         """
         model_name         registered model name, e.g. "catalog.schema.my_model"

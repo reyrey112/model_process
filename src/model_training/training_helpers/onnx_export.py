@@ -55,7 +55,7 @@ def dynamic_model_export_to_onnx(model, model_directory, registered_model_name: 
     onnx_model = onnx.load(onnx_dynamic_model_path)
     mlflow.onnx.log_model(
         onnx_model,
-        artifact_path="model",
+        name="dynamic_model",
         registered_model_name=registered_model_name,
         signature=signature,
         input_example=input_example,
@@ -125,7 +125,7 @@ def rl_model_export_to_onnx(model, model_directory, registered_model_name: str, 
     onnx_model = onnx.load(onnx_RL_model_path)
     mlflow.onnx.log_model(
         onnx_model,
-        artifact_path="model",
+        name="rl_model",
         registered_model_name=registered_model_name,
         signature=signature,
         input_example=input_example,
