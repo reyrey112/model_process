@@ -88,13 +88,13 @@ bash server_run.sh
 ### Run the EC2 App
 
 ```bash
-ec2_run.sh
+bash ec2_run.sh
 ```
 
 ### Run everything locally
 
 ```bash
-local_test.sh
+bash local_test.sh
 ```
 
 
