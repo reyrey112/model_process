@@ -56,17 +56,20 @@ The FastAPI app is deployed on AWS EC2, along with the cloud TimeScaleDB. A loca
 
 ### Variable Defining in Data Cleaning
 
+- Guided process for defining state, target, and action variables while performing data cleaning
 
-### Model training Modules for Dynamic and RL Models
-
-### Atomic Model Switching During Inference Using Databricks
+### Model training Modules for PyTorch Dynamic and Gym RL Models
 
 ### Redundent Data and Inference Pathways
+
+- Inference data is stored in local SQLite database
+- Model configs pulled from Databricks, not loaded until local model is saved for deployment
+- Model paths and champion model stored in local config file as well as Databricks
 
 ### Deployment
 The project includes a compose file for a local on-premise server for the inference loop, a compose file for the cloud server and FastAPI app, and a compose file for hosting it all locally on one machine for testing.
 
-## Local development
+## Development Requirements
 
 ### Prerequisites
 
